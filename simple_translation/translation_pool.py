@@ -47,28 +47,30 @@ class TranslationPool(object):
         if isinstance(list_or_instance, models.Model):
             is_list = False
             result_list = [list_or_instance]
+            model = list_or_instance.__class__
         else:
-           result_list =  list_or_instance
-           
-        model = list_or_instance[0].__class__
-        translated_model = self.translated_models[model]['model']
-        translation_model_fk = self.translated_models[model]['translation_model_fk'] 
-           
-        id_list = [r.pk for r in result_list]
-        pk_index_map = dict([(pk, index) for index, pk in enumerate(id_list)])
-        
-        translations = translated_model.objects.filter(**{
-            translation_model_fk + '__in': id_list
-        })
-        
-        for obj in translations:
-            index = pk_index_map[getattr(obj, translation_model_fk + '_id')]
-            if not hasattr(result_list[index], 'translations'):
-                result_list[index].translations = []
-            result_list[index].translations.append(obj)
-        
-        if not is_list:
-            return result_list[0]
+            result_list = list_or_instance
+            if not len(result_list):
+                return result_list
+                       
+            translated_model = self.translated_models[model]['model']
+            translation_model_fk = self.translated_models[model]['translation_model_fk'] 
+               
+            id_list = [r.pk for r in result_list]
+            pk_index_map = dict([(pk, index) for index, pk in enumerate(id_list)])
+            
+            translations = translated_model.objects.filter(**{
+                translation_model_fk + '__in': id_list
+            })
+            
+            for obj in translations:
+                index = pk_index_map[getattr(obj, translation_model_fk + '_id')]
+                if not hasattr(result_list[index], 'translations'):
+                    result_list[index].translations = []
+                result_list[index].translations.append(obj)
+            
+            if not is_list:
+                return result_list[0]
         return result_list
         
 translation_pool = TranslationPool()
