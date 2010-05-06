@@ -50,10 +50,9 @@ class LanguageWidget(forms.HiddenInput):
     
     is_hidden = False
     class Media:
-
-            js = [os.path.join(settings.CMS_MEDIA_URL, path) for path in (
-                'js/change_form.js',
-            )]
+        js = [os.path.join(settings.CMS_MEDIA_URL, 'js/change_form.js'),
+            os.path.join(settings.ADMIN_MEDIA_PREFIX, 'js/urlify.js')
+        ]
             
     def render(self, name, value, attrs=None):
         
@@ -77,7 +76,6 @@ class TranslationAdmin(PlaceholderAdmin):
     
     def __init__(self, *args, **kwargs):
         super(TranslationAdmin, self).__init__(*args, **kwargs)
-        self.prepopulated_fields.update(getattr(self, 'delayed_prepopulated_fields', {}))
         from simple_translation.translation_pool import translation_pool
         translation_info = translation_pool.get_info(self.model)
         self.translation_model = translation_info['model']
@@ -130,8 +128,8 @@ class TranslationAdmin(PlaceholderAdmin):
             if name in initial:
                 form.base_fields[name].initial = initial[name]
                 
-        if obj:
-            form.base_fields['language'].widget = LanguageWidget()
+        
+        form.base_fields['language'].widget = LanguageWidget()
         return form
 
     def save_model(self, request, obj, form, change):

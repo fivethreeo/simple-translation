@@ -52,6 +52,7 @@ class TranslationPool(object):
             result_list = list_or_instance
             if not len(result_list):
                 return result_list
+            model = list_or_instance[0].__class__
                        
             translated_model = self.translated_models[model]['model']
             translation_model_fk = self.translated_models[model]['translation_model_fk'] 
