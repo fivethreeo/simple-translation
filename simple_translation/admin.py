@@ -45,6 +45,7 @@ class LanguageChangeList(ChangeList):
         super(LanguageChangeList, self).get_results(request)
         from simple_translation.translation_pool import translation_pool
         self.result_list = translation_pool.annotate_with_translations(self.result_list)
+        self.can_show_all = False
         
 class LanguageWidget(forms.HiddenInput):
     
