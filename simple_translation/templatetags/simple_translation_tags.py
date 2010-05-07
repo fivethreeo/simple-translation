@@ -22,15 +22,16 @@ def get_preferred_translation_from_request(obj, request):
     for translation in obj.translations:
         if translation.language == language:
             return translation
+    return obj.translations[0]    
 register.filter(get_preferred_translation_from_request)
-    
     
 def get_preferred_translation_from_lang(obj, language):
     if not hasattr(obj, 'translations'):
         annotate_with_translations(obj)
     for translation in obj.translations:
         if translation.language == language:
-            return translation    
+            return translation
+    return obj.translations[0]
 register.filter(get_preferred_translation_from_lang)
     
     
