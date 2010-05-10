@@ -1,0 +1,7 @@
+{% spaceless %}
+{% if translations %}
+    ({% for translation in translations %}
+    <a href="{{ translation.get_absolute_url }}">{{ translation.language|upper }}</a>{% if not forloop.last %}&nbsp;{% endif %}
+    {% endfor %})
+{% endif %}
+{% endspaceless %}

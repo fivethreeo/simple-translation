@@ -1,4 +1,5 @@
 from django import template
+from django.template.loader import render_to_string
 from django.db import models
 from simple_translation.translation_pool import translation_pool
 
@@ -34,4 +35,18 @@ def get_preferred_translation_from_lang(obj, language):
     return obj.translations[0]
 register.filter(get_preferred_translation_from_lang)
     
-    
+def render_language_choices(obj, request):
+    from cms.utils import get_language_from_request
+    if not hasattr(obj, 'translations'):
+        annotate_with_translations(obj)
+    language = get_language_from_request(request)    
+    translations = [translation for translation in obj.translations if translation.language != language]
+    opts = obj.__class__._meta
+    app_label = opts.app_label
+    return render_to_string([
+        'simple_translation/%s/%s/language_choices.html' % (app_label, opts.object_name.lower()),
+        'simple_translation/%s/language_choices.html' % app_label,
+        'simple_translation/language_choices.html'
+    ], {'translations': translations})
+register.filter(render_language_choices)
+        
