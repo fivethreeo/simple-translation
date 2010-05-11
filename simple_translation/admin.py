@@ -50,11 +50,7 @@ class LanguageChangeList(ChangeList):
 class LanguageWidget(forms.HiddenInput):
     
     is_hidden = False
-    class Media:
-        js = [os.path.join(settings.CMS_MEDIA_URL, 'js/change_form.js'),
-            os.path.join(settings.ADMIN_MEDIA_PREFIX, 'js/urlify.js')
-        ]
-            
+
     def render(self, name, value, attrs=None):
         
         hidden_input = super(LanguageWidget, self).render(name, value, attrs=attrs)
