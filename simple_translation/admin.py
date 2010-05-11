@@ -46,11 +46,52 @@ class LanguageChangeList(ChangeList):
         from simple_translation.translation_pool import translation_pool
         self.result_list = translation_pool.annotate_with_translations(self.result_list)
         self.can_show_all = False
-        
+
+
 class LanguageWidget(forms.HiddenInput):
     
     is_hidden = False
+    button_js = '''
+    <script type="text/javascript">
+    
+    $(document).ready(function () {
+        $("#id_slug").change(function() { this._changed = true; });
+        $('#id_title').change(function() {this._changed = true; });
+    })  
+    
+    trigger_lang_button = function(e, url) {
+        // also make sure that we will display the confirm dialog
+        // in case users switch tabs while editing plugins
+        changed = false;
+        if($("#id_slug")[0]._changed){
+            changed = true;
+        }
 
+        if($("#id_title")[0]._changed){
+            changed = true;
+        }
+
+        if($('iframe').length){
+            changed = true;
+        }
+
+        if (changed) {
+            var question = gettext("Are you sure you want to change tabs without saving the page first?")
+            var answer = confirm(question);
+        }else{
+            var answer = true;
+        }
+
+        if (!answer) {
+            return false;
+        } else {
+            window.location = url;
+        }
+    }
+  
+    </script>
+    '''
+    
     def render(self, name, value, attrs=None):
         
         hidden_input = super(LanguageWidget, self).render(name, value, attrs=attrs)
@@ -58,8 +99,8 @@ class LanguageWidget(forms.HiddenInput):
         buttons = []
         for lang in settings.LANGUAGES:
             button_classes = u'class="language_button%s"' % (lang[0] == value and ' selected' or '')
-            buttons.append(u'''<input onclick="trigger_lang_button(this,'./?language=%s');"%s id="debutton" name="%s" value="%s" type="button">''' % (
-                lang[0], button_classes, lang[0], lang[1]))
+            buttons.append(u'''%s<input onclick="trigger_lang_button(this,'./?language=%s');"%s id="debutton" name="%s" value="%s" type="button">''' % (
+                self.button_js, lang[0], button_classes, lang[0], lang[1]))
             
         tabs = """%s<div id="page_form_lang_tabs">%s</div>""" % (hidden_input, u''.join(buttons))
 
