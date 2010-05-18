@@ -6,12 +6,6 @@ from simple_translation.translation_pool import translation_pool
 register = template.Library()
 
 def annotate_with_translations(object_or_list):
-    if isinstance(object_or_list, models.Model):
-        if hasattr(object_or_list, 'translations'):
-            return object_or_list
-    else:
-        if hasattr(object_or_list[0], 'translations'):
-            return object_or_list
     return translation_pool.annotate_with_translations(object_or_list)
 register.filter(annotate_with_translations)
 

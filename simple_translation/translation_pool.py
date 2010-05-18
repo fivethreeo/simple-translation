@@ -46,7 +46,8 @@ class TranslationPool(object):
     def annotate_with_translations(self, list_or_instance):
         
         self.discover_translations()
-        
+        if not list_or_instance:
+            return list_or_instance
         if isinstance(list_or_instance, models.Model):
             model = list_or_instance.__class__
             list_or_instance.translations = getattr(list_or_instance, self.translated_models[model]['translation_accessor']).all()
