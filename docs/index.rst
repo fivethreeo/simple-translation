@@ -30,7 +30,7 @@ There are four steps for using simple-translation:
                 language = models.CharField(max_length=2, choices=settings.LANGUAGES)
                 title = models.CharField(max_length=255)
 
-    2. simple-translation has one dependency - ``django-cms`` If this ``cms`` is not
+    2. simple-translation has one dependency - ``django-cms``. If ``cms`` is not
        in your `INSTALLED_APPS` list, add it.
 
     3. For the models to be translatable, create a ``cms_translation.py`` file 
