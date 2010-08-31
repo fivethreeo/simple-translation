@@ -1,6 +1,7 @@
 from cms.utils.placeholder import PlaceholderNoAction
+from cms.models import CMSPlugin
 
-class SimpleTranslatiomPlaceholderActions(PlaceholderNoAction):
+class SimpleTranslationPlaceholderActions(PlaceholderNoAction):
     can_copy = True
 
     def copy(self, target_placeholder, source_language, fieldname, model, target_language, **kwargs):
