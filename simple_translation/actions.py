@@ -1,5 +1,8 @@
+from django.conf import settings
 from cms.utils.placeholder import PlaceholderNoAction
 from cms.models import CMSPlugin
+
+LANG_DICT = dict(settings.LANGUAGES)
 
 class SimpleTranslationPlaceholderActions(PlaceholderNoAction):
     can_copy = True
@@ -14,7 +17,5 @@ class SimpleTranslationPlaceholderActions(PlaceholderNoAction):
         return new_plugins
     
     def get_copy_languages(self, placeholder, model, fieldname, **kwargs):
-        
-        from multilingual.languages import get_language_name
         language_codes = CMSPlugin.objects.filter(placeholder=placeholder).distinct().values_list('language', flat=True)
-        return [(lc, get_language_name(lc)) for lc in language_codes]
+        return [(lc, LANG_DICT.get('lc')) for lc in language_codes] 

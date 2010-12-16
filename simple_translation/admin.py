@@ -17,8 +17,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404, \
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 
-from cms.admin.placeholderadmin import PlaceholderAdmin
-from cms.utils import get_language_from_request
+from simple_translation.utils import get_language_from_request
 
 class LanguageChangeList(ChangeList):
 
@@ -127,7 +126,7 @@ def make_translation_admin(admin):
         def get_translation(self, request, obj):
     
             language = get_language_from_request(request)
-    
+ 
             if obj:
                 
                 get_kwargs = {
@@ -194,7 +193,7 @@ def make_translation_admin(admin):
             from simple_translation.translation_pool import translation_pool
     
             language = get_language_from_request(request)
-    
+ 
             opts = self.model._meta
             translationopts = self.translation_model._meta
             app_label = translationopts.app_label
@@ -275,7 +274,9 @@ def make_translation_admin(admin):
     
 TranslationAdmin = make_translation_admin(admin.ModelAdmin)
 
-PlaceholderTranslationAdmin = make_translation_admin(PlaceholderAdmin)
+if 'cms' in settings.INSTALLED_APPS:
+    from cms.admin.placeholderadmin import PlaceholderAdmin
+    PlaceholderTranslationAdmin = make_translation_admin(PlaceholderAdmin)
 
 
 

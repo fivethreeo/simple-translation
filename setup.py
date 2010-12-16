@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 setup(
     name='simple-translation',
-    version='0.1a',
-    description='This is a translation app/plugin for django-cms 2.0',
+    version='0.5.0',
+    description='This is a translation app/plugin with support for django-cms 2.0 plugins in the admin',
     author='Oyvind Saltvik',
     author_email='oyvind@gmail.com',
     url='http://bitbucket.org/fivethreeo/simple-translation/',
@@ -18,6 +18,5 @@ setup(
     ],
     include_package_data=True,
     zip_safe=False,
-    install_requires=['setuptools'],
 )
 

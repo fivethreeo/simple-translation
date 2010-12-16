@@ -18,7 +18,7 @@ class TranslationPool(object):
         if self.discovered:
             return
         for app in settings.INSTALLED_APPS:
-            __import__(app, {}, {}, ['cms_translation'])
+            __import__(app, {}, {}, ['simple_translate'])
         self.discovered = True    
 
     def get_info(self, model):
