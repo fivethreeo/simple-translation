@@ -18,4 +18,4 @@ class SimpleTranslationPlaceholderActions(PlaceholderNoAction):
     
     def get_copy_languages(self, placeholder, model, fieldname, **kwargs):
         language_codes = CMSPlugin.objects.filter(placeholder=placeholder).distinct().values_list('language', flat=True)
-        return [(lc, LANG_DICT.get('lc')) for lc in language_codes] 
+        return [(lc, LANG_DICT.get(lc)) for lc in language_codes] 
