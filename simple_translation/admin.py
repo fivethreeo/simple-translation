@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.conf import settings
 from django.contrib import admin
-from django.forms.models import model_to_dict, fields_for_model, save_instance
+from django.forms.models import model_to_dict, fields_for_model, save_instance, construct_instance, InlineForeignKeyField
 from django import forms
 from django.utils.safestring import mark_safe
 
@@ -12,6 +12,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.util import unquote, get_deleted_objects
 from django.utils.text import capfirst
 from django.utils.encoding import force_unicode
+from django.utils.functional import curry
 from django.http import HttpResponseRedirect, HttpResponse, Http404, \
     HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import render_to_response, get_object_or_404
@@ -144,10 +145,12 @@ def make_translation_admin(admin):
         def get_form(self, request, obj=None, **kwargs):
     
             form = super(RealTranslationAdmin, self).get_form(request, obj, **kwargs)
-    
-            add_fields = fields_for_model(self.translation_model, exclude=[self.translation_model_fk])
+            
+            add_fields = fields_for_model(self.translation_model, exclude=[self.translation_model_fk],
+                formfield_callback=curry(self.formfield_for_dbfield, request=request))
     
             translation_obj = self.get_translation(request, obj)
+            
             initial = model_to_dict(translation_obj)
     
             for name, field in add_fields.items():
@@ -155,8 +158,82 @@ def make_translation_admin(admin):
                 if name in initial:
                     form.base_fields[name].initial = initial[name]
                     
-            
             form.base_fields['language'].widget = LanguageWidget(translation=translation_obj)
+        
+ 
+            
+            def _post_clean(self):
+                opts = self._meta
+                # Update the model instance with self.cleaned_data.
+                self.instance = construct_instance(self, self.instance, opts.fields, opts.exclude)
+                instance = self.instance
+                
+                exclude = self._get_validation_exclusions()
+        
+                # Foreign Keys being used to represent inline relationships
+                # are excluded from basic field value validation. This is for two
+                # reasons: firstly, the value may not be supplied (#12507; the
+                # case of providing new values to the admin); secondly the
+                # object being referred to may not yet fully exist (#12749).
+                # However, these fields *must* be included in uniqueness checks,
+                # so this can't be part of _get_validation_exclusions().
+                for f_name, field in self.fields.items():
+                    if isinstance(field, InlineForeignKeyField):
+                        exclude.append(f_name)
+        
+                # Clean the model instance's fields.
+                try:
+                    self.instance.clean_fields(exclude=exclude)
+                except ValidationError, e:
+                    self._update_errors(e.message_dict)
+        
+                # Call the model instance's clean method.
+                try:
+                    self.instance.clean()
+                except ValidationError, e:
+                    self._update_errors({NON_FIELD_ERRORS: e.messages})
+        
+                # Validate uniqueness if needed.
+                if self._validate_unique:
+                    self.validate_unique()
+                opts = self._meta
+                # Update the model instance with self.cleaned_data.
+                
+                self.instance = construct_instance(self, translation_obj, fields = form.base_fields.keys())
+                
+                exclude = self._get_validation_exclusions()
+        
+                # Foreign Keys being used to represent inline relationships
+                # are excluded from basic field value validation. This is for two
+                # reasons: firstly, the value may not be supplied (#12507; the
+                # case of providing new values to the admin); secondly the
+                # object being referred to may not yet fully exist (#12749).
+                # However, these fields *must* be included in uniqueness checks,
+                # so this can't be part of _get_validation_exclusions().
+                for f_name, field in self.fields.items():
+                    if isinstance(field, InlineForeignKeyField):
+                        exclude.append(f_name)
+        
+                # Clean the model instance's fields.
+                try:
+                    self.instance.clean_fields(exclude=exclude)
+                except ValidationError, e:
+                    self._update_errors(e.message_dict)
+        
+                # Call the model instance's clean method.
+                try:
+                    self.instance.clean()
+                except ValidationError, e:
+                    self._update_errors({NON_FIELD_ERRORS: e.messages})
+        
+                # Validate uniqueness if needed.
+                if self._validate_unique:
+                    self.validate_unique()
+                    
+                self.instance = instance
+                
+            form._post_clean = _post_clean
+            
             return form
     
         def save_model(self, request, obj, form, change):
