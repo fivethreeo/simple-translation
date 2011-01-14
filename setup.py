@@ -16,6 +16,8 @@ setup(
         'Programming Language :: Python',
         'Framework :: Django',
     ],
+    install_requires = ['Django>=1.2.4'],
+    test_suite = 'simple_translation.test.run_tests.run_tests',
     include_package_data=True,
     zip_safe=False,
 )
