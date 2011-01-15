@@ -24,11 +24,11 @@ def run_tests():
         
         MIDDLEWARE_CLASSES = (
             'django.contrib.sessions.middleware.SessionMiddleware',
-            'cms.middleware.multilingual.MultilingualURLMiddleware',
             'django.contrib.auth.middleware.AuthenticationMiddleware',
             'django.middleware.common.CommonMiddleware',
             'django.middleware.doc.XViewMiddleware',
-            'django.middleware.csrf.CsrfViewMiddleware'
+            'django.middleware.csrf.CsrfViewMiddleware',
+            'simple_translation.middleware.MultilingualGenericsMiddleware'
         ),
         
         ROOT_URLCONF = 'simple_translation.test.testapp.urls',
@@ -43,6 +43,11 @@ def run_tests():
         ),
         
         LANGUAGE_CODE = "en",
+        
+        LANGUAGES = (
+            ("en", "English"),
+            ("de", "German"),
+        )
 
     )
     
