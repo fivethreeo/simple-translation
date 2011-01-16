@@ -1,0 +1,12 @@
+{% load i18n simple_translation_tags %}
+
+<h1>{% trans "Latest entries" %}</h1>
+
+{% for title in latest%}
+
+	<p>{{ title.entry.pub_date|date:"d b Y" }}<br/><a href="{{ title.get_absolute_url }}">{{ title }} - {{ title.get_language_display }}</a>
+	   </p>
+	   
+{% empty %}
+	<p>{% trans "No entries" %}<p>
+{% endfor %}

@@ -10,4 +10,6 @@ urlpatterns = patterns('',
 )
 
 
-urlpatterns += patterns('', url(r'^', include('simple_translation.test.testapp.urls')))
+urlpatterns += patterns('', 
+    url(r'^', include('simple_translation.test.testapp.urls'))
+)

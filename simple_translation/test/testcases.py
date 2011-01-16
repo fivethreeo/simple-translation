@@ -1,10 +1,11 @@
 from django.template.defaultfilters import slugify
 from django.test.testcases import TestCase
-from simple_trasnslation.test.models import Entry, EntryTitle
+from simple_translation.test.testapp.models import Entry, EntryTitle
 
 class SimpleTranslationBaseTestCase(TestCase):
         
     def create_entry_with_title(self, title=None, slug=None, language=None, published_at=None):
+    	kwargs = {}
         if published_at:
             kwargs['pub_date'] = published_at
         entry = Entry.objects.create(**kwargs)

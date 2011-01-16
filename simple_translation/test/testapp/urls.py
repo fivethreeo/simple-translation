@@ -1,18 +1,20 @@
-from simple_translation.test.testapp.models import Entry
+from simple_translation.test.testapp.models import EntryTitle
 from django.conf.urls.defaults import *
 
 entry_info_dict = {
-    'queryset': Entry.objects.all(),
-    'date_field': 'pub_date',
+    'queryset': EntryTitle.objects.all(),
+    'date_field': 'entry__pub_date',
+    'allow_future': True,
+    'allow_empty': True
 }
 
 entry_info_tagged_dict = {
-    'queryset_or_model': Entry.objects.all(),
+    'queryset_or_model': EntryTitle.objects.all(),
 }
 
 entry_info_month_dict = {
-    'queryset': Entry.objects.all(),
-    'date_field': 'pub_date',
+    'queryset': EntryTitle.objects.all(),
+    'date_field': 'entry__pub_date',
     'month_format': '%m',
 }
 

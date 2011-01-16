@@ -8,6 +8,7 @@ class TranslationPool(object):
     
     discovered = False
     translated_models = {}
+    translation_models = {}
     
     def discover_translations(self):        
         if self.discovered:
@@ -18,7 +19,10 @@ class TranslationPool(object):
 
     def get_info(self, model):
         self.discover_translations()
-        return self.translated_models[model]
+        if model in self.translated_models:
+            return self.translated_models[model]
+        elif model in self.translation_models:
+            return self.translated_models[self.translation_models[model]]
         
     def register_translation(self, translation_of_model, translated_model, language_field='language'):
         
@@ -28,6 +32,7 @@ class TranslationPool(object):
             
         self.translated_models[translation_of_model] = {}
         self.translated_models[translation_of_model]['model'] = translated_model
+        self.translation_models[translated_model] = translation_of_model
         
         opts = translation_of_model._meta
         for rel in opts.get_all_related_objects():
@@ -72,6 +77,12 @@ class TranslationPool(object):
         
         return result_list
     
+    def is_registered_translation(self, model):
+        self.discover_translations()
+        if model in self.translation_models:
+            return True
+        return False
+        
     def is_registered(self, model):
         self.discover_translations()
         if model in self.translated_models:
