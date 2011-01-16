@@ -19,14 +19,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 
 from simple_translation.utils import get_language_from_request
-
-class LanguageChangeList(ChangeList):
-
-    def get_results(self, request):
-        super(LanguageChangeList, self).get_results(request)
-        from simple_translation.translation_pool import translation_pool
-        self.result_list = translation_pool.annotate_with_translations(self.result_list)
-        self.can_show_all = False
+from simple_translation.translation_pool import translation_pool
 
 class LanguageWidget(forms.HiddenInput):
     
@@ -104,26 +97,24 @@ def make_translation_admin(admin):
         
         def __init__(self, *args, **kwargs):
             super(RealTranslationAdmin, self).__init__(*args, **kwargs)
-            from simple_translation.translation_pool import translation_pool
             translation_info = translation_pool.get_info(self.model)
             self.translation_model = translation_info['model']
             self.translation_model_fk = translation_info['translation_model_fk']
             self.translation_model_language = translation_info['language_field']
     
         def description(self, obj):
-            return hasattr(obj, 'translations') and unicode(obj.translations[0]) or u'No translations'
+            return getattr(translation_pool.annotate_with_translations(obj), 'translations', []) \
+            	and unicode(translation_pool.annotate_with_translations(obj).translations[0]) or u'No translations'
         
         def languages(self, obj):
                 lnk = '<a href="%s/?language=%s">%s</a>'
-                trans_list = [ (obj.pk,  getattr(t, self.translation_model_language), getattr(t, self.translation_model_language).upper())
-                    for t in getattr(obj, 'translations', []) ]
+                trans_list = [ (obj.pk, \
+                	getattr(t, self.translation_model_language), getattr(t, self.translation_model_language).upper())
+                    	for t in getattr(translation_pool.annotate_with_translations(obj), 'translations') or []]
                 return ' '.join([lnk % t for t in trans_list])
         languages.short_description = 'Languages'
         languages.allow_tags = True
-    
-        def get_changelist(self, request, **kwargs):
-            return LanguageChangeList
-            
+
         def get_translation(self, request, obj):
     
             language = get_language_from_request(request)
@@ -301,7 +292,7 @@ def make_translation_admin(admin):
                     raise PermissionDenied
     
                 message = _('%(obj_name)s with language %(language)s was deleted') % {
-                    'language': [name for code, name in settings.CMS_LANGUAGES if code == language][0], 'obj_name': force_unicode(translationopts.verbose_name)}
+                    'language': [name for code, name in settings.LANGUAGES if code == language][0], 'obj_name': force_unicode(translationopts.verbose_name)}
                 self.log_change(request, translationobj, message)
                 self.message_user(request, message)
     

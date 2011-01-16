@@ -1,0 +1,14 @@
+{% load i18n simple_translation_tags %}
+
+<h1>{% trans "Entries tagged" %} "{{ tag }}"</h1>
+
+{% for entry in object_list|annotate_with_translations %}
+    {% with entry|get_preferred_translation_from_request:request as title %}
+	<p>{{ entry.pub_date|date:"d b Y" }}<br/><a href="{{ title.get_absolute_url }}">{{ title }} - {{ title.get_language_display }}</a>
+	   {{ entry|render_language_choices:request|safe }}
+	</p>
+	{% endwith %}
+{% empty %}
+	<p>{% trans "No entries tagged" %} "{{ tag }}"<p>
+{% endfor %}
+

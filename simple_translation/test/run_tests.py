@@ -28,10 +28,9 @@ def run_tests():
             'django.middleware.common.CommonMiddleware',
             'django.middleware.doc.XViewMiddleware',
             'django.middleware.csrf.CsrfViewMiddleware',
-            'simple_translation.middleware.MultilingualGenericsMiddleware'
         ),
         
-        ROOT_URLCONF = 'simple_translation.test.testapp.urls',
+        ROOT_URLCONF = 'simple_translation.test.testapp.no_translated_urls',
         
         INSTALLED_APPS = (
             'django.contrib.auth',

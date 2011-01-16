@@ -4,11 +4,6 @@ from django.conf import settings
 class TranslationAllreadyRegistered(Exception):
     pass
 
-class ordered_attr_list(list):
-	""" to play nice with modelformset """
-	ordered = True
-	db = None
-
 class TranslationPool(object):
     
     discovered = False
@@ -50,11 +45,11 @@ class TranslationPool(object):
             return list_or_instance
         if isinstance(list_or_instance, models.Model):
             model = list_or_instance.__class__
-            list_or_instance.translations = getattr(list_or_instance, self.translated_models[model]['translation_accessor']).all()
+            list_or_instance.translations = getattr(list_or_instance, \
+            	list(self.translated_models[model]['translation_accessor']).all())
             return list_or_instance
         else:
-            result_list = ordered_attr_list(list_or_instance)
-            result_list.db = list_or_instance.db
+            result_list = list_or_instance
             if not len(result_list):
                 return result_list
             model = list_or_instance[0].__class__
