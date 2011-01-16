@@ -9,6 +9,7 @@ class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
         
+    pub_date = forms.DateTimeField()
     title = forms.CharField()
     slug = forms.SlugField()
     

@@ -3,9 +3,8 @@ from django.conf.urls.defaults import *
 
 entry_info_dict = {
     'queryset': EntryTitle.objects.all(),
-    'date_field': 'entry__pub_date',
-    'allow_future': True,
-    'allow_empty': True
+    'date_field': 'pub_date',
+    'allow_future': True
 }
 
 entry_info_tagged_dict = {
@@ -14,7 +13,7 @@ entry_info_tagged_dict = {
 
 entry_info_month_dict = {
     'queryset': EntryTitle.objects.all(),
-    'date_field': 'entry__pub_date',
+    'date_field': 'pub_date',
     'month_format': '%m',
 }
 

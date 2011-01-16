@@ -18,7 +18,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
         en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
         
-        de_title = self.create_entry_title(entry, title='german', language='de')
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
             
         index = reverse('entry_archive_index')
         
@@ -53,7 +53,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
         en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
         
-        de_title = self.create_entry_title(entry, title='german', language='de')
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
             	
         index = reverse('entry_archive_index')
         
@@ -68,7 +68,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
         en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
         
-        de_title = self.create_entry_title(entry, title='german', language='de')
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
                 	
         index = reverse('entry_archive_index')
         
@@ -86,7 +86,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
         en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
         
-        de_title = self.create_entry_title(entry, title='german', language='de')
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
         
         index = reverse('entry_archive_index')
         
@@ -108,7 +108,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
         en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
         
-        de_title = self.create_entry_title(entry, title='german', language='de')
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
             
         index = reverse('entry_archive_index')
         
@@ -145,7 +145,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
         en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
         
-        de_title = self.create_entry_title(entry, title='german', language='de')
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
         
         edit_url = reverse('admin:testapp_entry_change', args=(str(entry.pk)))
         
@@ -158,3 +158,23 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         response = self.client.get(edit_url, {'language': 'de'})
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, 'language_button selected" id="debutton" name="de"' )
+        
+        
+    def test_07_test_changelist_description(self):
+        superuser = User(username="super", is_staff=True, is_active=True, 
+            is_superuser=True)
+        superuser.set_password("super")
+        superuser.save()
+        
+        self.client.login(username='super', password='super')
+        
+        published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
+        en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
+        
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
+            
+        list_url = reverse('admin:testapp_entry_changelist')
+        response = self.client.get(list_url)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, '<a href="1/?language=en">EN</a>' )
+        self.assertContains(response, '<a href="1/?language=de">DE</a>' )

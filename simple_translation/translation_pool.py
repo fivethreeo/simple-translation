@@ -50,8 +50,8 @@ class TranslationPool(object):
             return list_or_instance
         if isinstance(list_or_instance, models.Model):
             model = list_or_instance.__class__
-            list_or_instance.translations = getattr(list_or_instance, \
-            	list(self.translated_models[model]['translation_accessor']).all())
+            list_or_instance.translations = list(getattr(list_or_instance, \
+            	self.translated_models[model]['translation_accessor']).all())
             return list_or_instance
         else:
             result_list = list_or_instance
