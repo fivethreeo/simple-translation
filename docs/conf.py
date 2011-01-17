@@ -39,7 +39,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'simple-translation'
-copyright = 'Øyvind Saltvik'
+copyright = unicode('Øyvind Saltvik', 'utf-8')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -176,7 +176,7 @@ latex_paper_size = 'a4'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'simle_translation.tex', u'simple-translation',
-   'Øyvind Saltvik', 'manual'),
+   unicode('Øyvind Saltvik', 'utf-8'), 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top
