@@ -17,7 +17,7 @@ There are five steps for using simple-translation:
 
     1. Set ``settings.LANGUAGES`` to the languages you want to use translations for. ::
     
-        settings.settings.LANGUAGES = (
+        LANGUAGES = (
             ('en','English'),('de', 'German')
         )
 
