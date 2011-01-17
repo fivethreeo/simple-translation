@@ -1,12 +1,13 @@
 import os
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 
 from django.conf import settings
+from django.db import router
 from django.contrib import admin
 from django.forms.models import model_to_dict, fields_for_model, save_instance, construct_instance, InlineForeignKeyField
 from django import forms
-from django.forms.models import ModelForm, ModelFormMetaclass, modelform_factory
+from django.forms.models import ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
 from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
 
@@ -46,48 +47,55 @@ class TranslationModelForm(ModelForm):
     __metaclass__ = TranslationModelFormMetaclass
     
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-        initial=None, error_class=ErrorList, label_suffix=':',
+        initial={}, error_class=ErrorList, label_suffix=':',
         empty_permitted=False, instance=None):
-            
-        super(TranslationModelForm, self).__init__(data=data, files=files, auto_id=auto_id, prefix=prefix,
-            initial=initial, error_class=error_class, label_suffix=label_suffix,
-            empty_permitted=empty_permitted, instance=instance)
-            
+        
         model = self._meta.model
         child_model = self.child_form_class._meta.model
         translation_info = translation_pool.get_info(model)
+        current_language = self.base_fields['language'].initial
         if instance and instance.pk:
             try:
                 child_instance = child_model.objects.get(**{
                     translation_info['translation_model_fk']: instance.pk,
-                    translation_info['language_field']: self.current_language})
+                    translation_info['language_field']: current_language})
             except child_model.DoesNotExist:
                 child_instance = child_model(**{
-                    translation_info['language_field']: self.current_language})
+                    translation_info['language_field']: current_language})
         else:
-            child_instance = child_model(**{translation_info['language_field']: self.current_language})
-                
+            child_instance = child_model(**{translation_info['language_field']: current_language})
+            
+        initial.update(model_to_dict(child_instance))
+        
         self.child_form = self.child_form_class(data=data, files=files, auto_id=auto_id, prefix=prefix,
             initial=initial, error_class=error_class, label_suffix=label_suffix,
             empty_permitted=empty_permitted, instance=child_instance)
             
+        
+        super(TranslationModelForm, self).__init__(data=data, files=files, auto_id=auto_id, prefix=prefix,
+            initial=initial, error_class=error_class, label_suffix=label_suffix,
+            empty_permitted=empty_permitted, instance=instance)
+            
+
     def full_clean(self):
         super(TranslationModelForm, self).full_clean()
         self.child_form.full_clean()
         if self.child_form._errors:
-            del self.cleaned_data
             self._update_errors(self.child_form._errors)
+            del self.cleaned_data
             
 def translation_modelform_factory(model, form=TranslationModelForm, fields=None, exclude=None,
                        formfield_callback=None):
     # Create the inner Meta class. FIXME: ideally, we should be able to
     # construct a ModelForm without creating and passing in a temporary
     # inner class.
-
+    translation_info = translation_pool.get_info(model)
+    translation_model = translation_info['model']
+    translation_fields = [f[0].name for f in translation_model._meta.get_fields_with_model()]
     # Build up a list of attributes that the Meta object will have.
     attrs = {'model': model}
     if fields is not None:
-        attrs['fields'] = fields
+        attrs['fields'] = [ field for field in fields if not field in translation_fields]
     if exclude is not None:
         attrs['exclude'] = exclude
 
@@ -168,8 +176,8 @@ class LanguageWidget(forms.HiddenInput):
             buttons.append(u''' <input onclick="trigger_lang_button(this,'./?language=%s');"%s id="debutton" name="%s" value="%s" type="button">''' % (
                 lang[0], button_classes, lang[0], lang[1]))
                 
-        lang_descr = u'Delete: &quot;%s&quot; translation.' % force_unicode(lang_dict[str(value)]) 
-        if self.translation.pk:
+        lang_descr = _('Delete: &quot;%s&quot; translation.') % force_unicode(lang_dict[str(value)]) 
+        if self.translation.pk and len(translation_pool.annotate_with_translations(self.translation).translations) > 1:
             buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"%s id="debutton" name="%s" value="%s" type="button">''' % (
                     value, u'', 'dellang', lang_descr ))    
                 
@@ -246,21 +254,25 @@ def make_translation_admin(admin):
                 "formfield_callback": curry(self.formfield_for_dbfield, request=request),
             }
             defaults.update(kwargs)
-            form = translation_modelform_factory(self.model, **defaults)
+            new_form = translation_modelform_factory(self.model, **defaults)
             current_language = get_language_from_request(request)
-            form.current_language = current_language
             translation_obj = self.get_translation(request, obj)
-            form.base_fields['language'].widget = LanguageWidget(translation=translation_obj)
-            form.base_fields['language'].initial = current_language
+            new_form.base_fields['language'].widget = LanguageWidget(translation=translation_obj)
+            new_form.base_fields['language'].initial = current_language
 
-            return form
-                
-        def save_model(self, request, obj, form, change):
-            super(RealTranslationAdmin, self).save_model(request, obj, form, change)
+            return new_form
             
-            translation_obj = form.child_form.save(commit=False)            
+        def save_translated_form(self, request, obj, form, change):
+            return form.child_form.save(commit=False)            
+
+        def save_translated_model(self, request, obj, translation_obj, form, change):
             setattr(translation_obj, self.translation_model_fk, obj) 
             translation_obj.save()
+            
+        def save_model(self, request, obj, form, change):
+            super(RealTranslationAdmin, self).save_model(request, obj, form, change)
+            translation_obj = self.save_translated_form(request, obj, form, change)
+            self.save_translated_model(request, obj, translation_obj, form, change)
             
         def placeholder_plugin_filter(self, request, queryset):
             language = get_language_from_request(request)
@@ -309,8 +321,8 @@ def make_translation_admin(admin):
                 raise Http404(_('There only exists one translation for this page'))
     
             translationobj = get_object_or_404(self.translation_model, **{self.translation_model_fk + '__id': object_id, 'language': language})
-            
-            deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, request.user, self.admin_site)        
+            using = router.db_for_write(self.model)
+            deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, request.user, self.admin_site, using)        
     
             if request.method == 'POST':
                 if perms_needed:

@@ -39,7 +39,7 @@ class TranslationPool(object):
             if rel.model == translated_model:
                 self.translated_models[translation_of_model]['translation_model_fk'] = rel.field.name
                 self.translated_models[translation_of_model]['translation_accessor'] = rel.get_accessor_name()
-                    
+
         self.translated_models[translation_of_model]['translation_filter'] = translated_model.__name__.lower()          
         self.translated_models[translation_of_model]['language_field'] = language_field     
              
@@ -50,17 +50,24 @@ class TranslationPool(object):
             return list_or_instance
         if isinstance(list_or_instance, models.Model):
             model = list_or_instance.__class__
-            list_or_instance.translations = list(getattr(list_or_instance, \
-            	self.translated_models[model]['translation_accessor']).all())
+            instance = list_or_instance
+            if self.is_registered_translation(model):
+                instance = getattr(list_or_instance, self.get_info(model)['translation_model_fk'])
+            list_or_instance.translations = list(getattr(instance, \
+            	self.get_info(model)['translation_accessor']).all())
             return list_or_instance
         else:
             result_list = list_or_instance
             if not len(result_list):
                 return result_list
             model = list_or_instance[0].__class__
-                       
-            translated_model = self.translated_models[model]['model']
-            translation_model_fk = self.translated_models[model]['translation_model_fk'] 
+            
+            info = self.get_info(model)
+            translated_model = info['model']
+            if self.is_registered_translation(model):
+                translation_model_fk = self.translated_models[model]['translation_model_fk'] 
+            else:
+                translation_model_fk = self.translated_models[model]['translation_model_fk'] 
                
             id_list = [r.pk for r in result_list]
             pk_index_map = dict([(pk, index) for index, pk in enumerate(id_list)])
