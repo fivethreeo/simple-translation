@@ -13,9 +13,15 @@ simple-translation
 Overview
 ========
 
-There are four steps for using simple-translation:
+There are five steps for using simple-translation:
 
-    1. Make two models in your app, one having the non-translated fields and
+    1. Set ``settings.LANGUAGES`` to the languages you want to use translations for. ::
+    
+        settings.settings.LANGUAGES = (
+            ('en','English'),('de', 'German')
+        )
+
+    2. Make two models in your app, one having the non-translated fields and
        the other having the translated fields a language field and
        a ForeignKey to the non-translated model. ::
        
@@ -30,7 +36,7 @@ There are four steps for using simple-translation:
                 language = models.CharField(max_length=2, choices=settings.LANGUAGES)
                 title = models.CharField(max_length=255)
 
-    2. For the models to be translatable, create a ``simple_translate.py`` file 
+    3. For the models to be translatable, create a ``simple_translate.py`` file 
        where you register the translated model in the translation_pool. ::
        
             from models import Entry, EntryTitle
@@ -38,7 +44,7 @@ There are four steps for using simple-translation:
             from simple_translation.translation_pool import translation_pool
             translation_pool.register(Entry, EntryTitle)
       
-    3. To be able to edit the translated models in the admin.
+    4. To be able to edit the translated models in the admin.
        Register the models using the custom ``TranslationAdmin`` ``ModelAdmin``. ::
        
             from django.contrib import admin
@@ -54,7 +60,7 @@ There are four steps for using simple-translation:
         
             Make sure ``'languages'`` is listed in ``list_display``.
     
-    4. To use the generics views middleware with namespaced urls:
+    5. To use the generics views middleware with namespaced urls:
     
         Add ``'simple_translation.middleware.MultilingualGenericsMiddleware'`` to ``settings.MIDDLEWARE_CLASSES``
         
