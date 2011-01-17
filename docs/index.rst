@@ -36,7 +36,6 @@ There are four steps for using simple-translation:
     3. For the models to be translatable, create a ``cms_translation.py`` file 
        where you register the translated model in the translation_pool. ::
        
-            from django.contrib import admin
             from models import Entry, EntryTitle
             
             from simple_translation.translation_pool import translation_pool
@@ -46,7 +45,7 @@ There are four steps for using simple-translation:
        Register the models using the custom ``TranslationAdmin`` ``ModelAdmin``. ::
        
             from django.contrib import admin
-            from models import Entry, EntryTitle
+            from models import Entry
             from simple_translation.admin import TranslationAdmin
             
             class EntryAdmin(TranslationAdmin):
@@ -54,11 +53,55 @@ There are four steps for using simple-translation:
             
             admin.site.register(Entry, EntryAdmin)
             
-    .. admonition:: Note
+        .. admonition:: Note
         
-        Make sure ``'languages'`` is listed in ``list_display``.
-
-
+            Make sure ``'languages'`` is listed in ``list_display``.
+    
+    5. To use the generics views middleware with namespaced urls:
+    
+        Add ``'simple_translation.middleware import MultilingualGenericsMiddleware'`` to ``settings.MIDDLEWARE_CLASSES``
+        
+        Set up some urls using generic views: ::
+        
+            # urls.py
+            from models import Entry
+            from django.conf.urls.defaults import *
+            
+            entry_info_dict = {
+                'queryset': Entry.objects.all(),
+                'date_field': 'pub_date',
+                'allow_future': True,
+                'slug_field': 'entrytitle__slug'
+            }
+            
+            entry_info_detail_dict = dict(entry_info_month_dict, slug_field='entrytitle__slug')
+            
+            urlpatterns = patterns('',
+                
+                (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[-\w]+)/$', 
+                    'django.views.generic.date_based.object_detail', entry_info_dict, 'entry_detail')
+                
+            )
+            
+        Wrap the urls to namespace them:
+        
+            # translated_urls.py
+            from django.conf import settings
+            from django.conf.urls.defaults import *
+                        
+            urlpatterns +=  patterns('', url(r'^',
+                include('appname.urls', app_name='appname')
+                )
+            )
+            
+            for langcode in dict(settings.LANGUAGES).keys():
+                urlpatterns +=  patterns('', url(r'^%s/' % langcode,
+                    include('appname.urls',
+                        namespace=langcode, app_name='appname'),
+                    kwargs={'language_code': langcode}
+                )
+            )
+        
 Indices and tables
 ==================
 
