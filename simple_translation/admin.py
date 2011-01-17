@@ -136,15 +136,15 @@ class LanguageWidget(forms.HiddenInput):
         // also make sure that we will display the confirm dialog
         // in case users switch tabs while editing plugins
         changed = false;
-        if(django.jQuery("#id_slug")[0]._changed){
+        if(django.jQuery("#id_slug") && django.jQuery("#id_slug")[0]._changed){
             changed = true;
         }
 
-        if(django.jQuery("#id_title")[0]._changed){
+        if(django.jQuery("#id_slug") && django.jQuery("#id_title")[0]._changed){
             changed = true;
         }
 
-        if(django.jQuery('iframe').length){
+        if(django.jQuery("#id_slug") && django.jQuery('iframe').length){
             changed = true;
         }
 
