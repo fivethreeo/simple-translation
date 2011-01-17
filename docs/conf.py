@@ -161,7 +161,7 @@ html_static_path = ['static']
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'djangocmsdoc'
+htmlhelp_basename = 'simpletranslationdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -175,8 +175,8 @@ latex_paper_size = 'a4'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'djangocms.tex', u'django cms Documentation',
-   u'Patrick Lauber', 'manual'),
+  ('index', 'simle_translation.tex', u'simple-translation',
+   'Øyvind Saltvik', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top
