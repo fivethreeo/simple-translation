@@ -6,10 +6,13 @@ from django.conf import settings
 from django.contrib import admin
 from django.forms.models import model_to_dict, fields_for_model, save_instance, construct_instance, InlineForeignKeyField
 from django import forms
+from django.forms.models import ModelForm, ModelFormMetaclass, modelform_factory
+from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
 
 from django.contrib.admin.views.main import ChangeList
-from django.contrib.admin.util import unquote, get_deleted_objects
+from django.contrib.admin.util import unquote, get_deleted_objects, flatten_fieldsets
+
 from django.utils.text import capfirst
 from django.utils.encoding import force_unicode
 from django.utils.functional import curry
@@ -20,6 +23,91 @@ from django.template.context import RequestContext
 
 from simple_translation.utils import get_language_from_request
 from simple_translation.translation_pool import translation_pool
+
+class TranslationModelFormMetaclass(ModelFormMetaclass):
+    
+    def __new__(cls, name, bases, attrs):
+        formfield_callback = attrs.get('formfield_callback', None)
+        new_class = super(TranslationModelFormMetaclass, cls).__new__(cls, name, bases, attrs)
+    
+        opts = new_class._meta
+        if opts.model:
+            if translation_pool.is_registered(opts.model):
+                info = translation_pool.get_info(opts.model)
+                translation_model = info['model']
+                new_class.child_form_class = modelform_factory(translation_model,
+                    exclude=[info['translation_model_fk']], formfield_callback=formfield_callback)
+                new_class.declared_fields.update(new_class.child_form_class.declared_fields)
+                new_class.base_fields.update(new_class.child_form_class.base_fields)
+        return new_class
+        
+class TranslationModelForm(ModelForm):
+    
+    __metaclass__ = TranslationModelFormMetaclass
+    
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+        initial=None, error_class=ErrorList, label_suffix=':',
+        empty_permitted=False, instance=None):
+            
+        super(TranslationModelForm, self).__init__(data=data, files=files, auto_id=auto_id, prefix=prefix,
+            initial=initial, error_class=error_class, label_suffix=label_suffix,
+            empty_permitted=empty_permitted, instance=instance)
+            
+        model = self._meta.model
+        child_model = self.child_form_class._meta.model
+        translation_info = translation_pool.get_info(model)
+        if instance and instance.pk:
+            try:
+                child_instance = child_model.objects.get(**{
+                    translation_info['translation_model_fk']: instance.pk,
+                    translation_info['language_field']: self.current_language})
+            except child_model.DoesNotExist:
+                child_instance = child_model(**{
+                    translation_info['language_field']: self.current_language})
+        else:
+            child_instance = child_model(**{translation_info['language_field']: self.current_language})
+                
+        self.child_form = self.child_form_class(data=data, files=files, auto_id=auto_id, prefix=prefix,
+            initial=initial, error_class=error_class, label_suffix=label_suffix,
+            empty_permitted=empty_permitted, instance=child_instance)
+            
+    def full_clean(self):
+        super(TranslationModelForm, self).full_clean()
+        self.child_form.full_clean()
+        if self.child_form._errors:
+            del self.cleaned_data
+            self._update_errors(self.child_form._errors)
+            
+def translation_modelform_factory(model, form=TranslationModelForm, fields=None, exclude=None,
+                       formfield_callback=None):
+    # Create the inner Meta class. FIXME: ideally, we should be able to
+    # construct a ModelForm without creating and passing in a temporary
+    # inner class.
+
+    # Build up a list of attributes that the Meta object will have.
+    attrs = {'model': model}
+    if fields is not None:
+        attrs['fields'] = fields
+    if exclude is not None:
+        attrs['exclude'] = exclude
+
+    # If parent form class already has an inner Meta, the Meta we're
+    # creating needs to inherit from the parent's inner meta.
+    parent = (object,)
+    if hasattr(form, 'Meta'):
+        parent = (form.Meta, object)
+    Meta = type('Meta', parent, attrs)
+
+    # Give this new form class a reasonable name.
+    class_name = model.__name__ + 'Form'
+
+    # Class attributes for the new form class.
+    form_class_attrs = {
+        'Meta': Meta,
+        'formfield_callback': formfield_callback
+    }
+
+    return TranslationModelFormMetaclass(class_name, (form,), form_class_attrs)
 
 class LanguageWidget(forms.HiddenInput):
     
@@ -132,109 +220,46 @@ def make_translation_admin(admin):
                     return self.translation_model(**get_kwargs)
     
             return self.translation_model(**{self.translation_model_language: language})
-    
+                
         def get_form(self, request, obj=None, **kwargs):
-    
-            form = super(RealTranslationAdmin, self).get_form(request, obj, **kwargs)
-            
-            add_fields = fields_for_model(self.translation_model, exclude=[self.translation_model_fk],
-                formfield_callback=curry(self.formfield_for_dbfield, request=request))
-    
+            """
+            Returns a Form class for use in the admin add view. This is used by
+            add_view and change_view.
+            """
+            if self.declared_fieldsets:
+                fields = flatten_fieldsets(self.declared_fieldsets)
+            else:
+                fields = None
+            if self.exclude is None:
+                exclude = []
+            else:
+                exclude = list(self.exclude)
+            exclude.extend(kwargs.get("exclude", []))
+            exclude.extend(self.get_readonly_fields(request, obj))
+            # if exclude is an empty list we pass None to be consistant with the
+            # default on modelform_factory
+            exclude = exclude or None
+            defaults = {
+                "form": self.form,
+                "fields": fields,
+                "exclude": exclude,
+                "formfield_callback": curry(self.formfield_for_dbfield, request=request),
+            }
+            defaults.update(kwargs)
+            form = translation_modelform_factory(self.model, **defaults)
+            current_language = get_language_from_request(request)
+            form.current_language = current_language
             translation_obj = self.get_translation(request, obj)
-            
-            initial = model_to_dict(translation_obj)
-    
-            for name, field in add_fields.items():
-                form.base_fields[name] = field
-                if name in initial:
-                    form.base_fields[name].initial = initial[name]
-                    
             form.base_fields['language'].widget = LanguageWidget(translation=translation_obj)
-        
- 
-            
-            def _post_clean(self):
-                opts = self._meta
-                # Update the model instance with self.cleaned_data.
-                self.instance = construct_instance(self, self.instance, opts.fields, opts.exclude)
-                instance = self.instance
-                
-                exclude = self._get_validation_exclusions()
-        
-                # Foreign Keys being used to represent inline relationships
-                # are excluded from basic field value validation. This is for two
-                # reasons: firstly, the value may not be supplied (#12507; the
-                # case of providing new values to the admin); secondly the
-                # object being referred to may not yet fully exist (#12749).
-                # However, these fields *must* be included in uniqueness checks,
-                # so this can't be part of _get_validation_exclusions().
-                for f_name, field in self.fields.items():
-                    if isinstance(field, InlineForeignKeyField):
-                        exclude.append(f_name)
-        
-                # Clean the model instance's fields.
-                try:
-                    self.instance.clean_fields(exclude=exclude)
-                except ValidationError, e:
-                    self._update_errors(e.message_dict)
-        
-                # Call the model instance's clean method.
-                try:
-                    self.instance.clean()
-                except ValidationError, e:
-                    self._update_errors({NON_FIELD_ERRORS: e.messages})
-        
-                # Validate uniqueness if needed.
-                if self._validate_unique:
-                    self.validate_unique()
-                opts = self._meta
-                # Update the model instance with self.cleaned_data.
-                
-                self.instance = construct_instance(self, translation_obj, fields = form.base_fields.keys())
-                
-                exclude = self._get_validation_exclusions()
-        
-                # Foreign Keys being used to represent inline relationships
-                # are excluded from basic field value validation. This is for two
-                # reasons: firstly, the value may not be supplied (#12507; the
-                # case of providing new values to the admin); secondly the
-                # object being referred to may not yet fully exist (#12749).
-                # However, these fields *must* be included in uniqueness checks,
-                # so this can't be part of _get_validation_exclusions().
-                for f_name, field in self.fields.items():
-                    if isinstance(field, InlineForeignKeyField):
-                        exclude.append(f_name)
-        
-                # Clean the model instance's fields.
-                try:
-                    self.instance.clean_fields(exclude=exclude)
-                except ValidationError, e:
-                    self._update_errors(e.message_dict)
-        
-                # Call the model instance's clean method.
-                try:
-                    self.instance.clean()
-                except ValidationError, e:
-                    self._update_errors({NON_FIELD_ERRORS: e.messages})
-        
-                # Validate uniqueness if needed.
-                if self._validate_unique:
-                    self.validate_unique()
-                    
-                self.instance = instance
-                
-            form._post_clean = _post_clean
-            
+            form.base_fields['language'].initial = current_language
+
             return form
-    
+                
         def save_model(self, request, obj, form, change):
             super(RealTranslationAdmin, self).save_model(request, obj, form, change)
             
-            translation_obj = self.get_translation(request, obj)
-            translation_obj = save_instance(form, translation_obj, commit=False)
-            
+            translation_obj = form.child_form.save(commit=False)            
             setattr(translation_obj, self.translation_model_fk, obj) 
-            
             translation_obj.save()
             
         def placeholder_plugin_filter(self, request, queryset):

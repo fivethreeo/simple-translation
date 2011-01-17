@@ -31,7 +31,6 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         
         response = self.client.get(index)
         self.assertContains(response, 'english')
-        self.assertContains(response, 'german')
 
         response = self.client.get(en_index)
         self.assertContains(response, 'english')
@@ -59,7 +58,6 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         
         response = self.client.get(index)
         self.assertContains(response, 'english')
-        self.assertContains(response, 'german')
         
         settings.MIDDLEWARE_CLASSES = old_middleware
         
@@ -121,6 +119,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         
         response = self.client.get(index)
         self.assertContains(response, 'english') # localemiddleware wins
+        self.assertNotContains(response, 'german')
 
         response = self.client.get(en_index)
         self.assertContains(response, 'english')

@@ -3,15 +3,12 @@ from django.contrib import admin
 from simple_translation.admin import TranslationAdmin
 
 from simple_translation.test.testapp.models import Entry, EntryTitle
+from simple_translation.admin import TranslationModelForm
 
-class EntryForm(forms.ModelForm):
+class EntryForm(TranslationModelForm):
     
     class Meta:
         model = Entry
-        
-    pub_date = forms.DateTimeField()
-    title = forms.CharField()
-    slug = forms.SlugField()
     
 class EntryAdmin(TranslationAdmin):
     
