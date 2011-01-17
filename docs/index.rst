@@ -78,7 +78,7 @@ There are four steps for using simple-translation:
                 
             )
             
-        Wrap the urls to namespace them:
+        Wrap the urls to namespace them: ::
         
             # translated_urls.py
             from django.conf import settings
