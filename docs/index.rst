@@ -42,7 +42,7 @@ There are six steps for using simple-translation:
                 language_namespace = \ 
                     'simple_translation.middleware.MultilingualGenericsMiddleware' in settings.MIDDLEWARE_CLASSES \
                         and '%s:' % self.language or ''
-                return ('%sblog_detail' % language_namespace, (), {
+                return ('%sentry_detail' % language_namespace, (), {
                     'year': self.entry.pub_date.strftime('%Y'),
                     'month': self.entry.pub_date.strftime('%m'),
                     'day': self.entry.pub_date.strftime('%d'),
