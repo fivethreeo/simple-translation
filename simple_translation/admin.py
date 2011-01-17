@@ -127,24 +127,18 @@ class LanguageWidget(forms.HiddenInput):
     button_js = u'''
     <script type="text/javascript">
     
+    var changed = false
+    
     django.jQuery(document).ready(function () {
-        django.jQuery("#id_slug").change(function() { this._changed = true; });
-        django.jQuery('#id_title').change(function() { this._changed = true; });
+        django.jQuery("#id_slug").change(function() { changed = true; });
+        django.jQuery('#id_title').change(function() { changed = true; });
     })  
     
     trigger_lang_button = function(e, url) {
         // also make sure that we will display the confirm dialog
         // in case users switch tabs while editing plugins
-        changed = false;
-        if(django.jQuery("#id_slug") && django.jQuery("#id_slug")[0]._changed){
-            changed = true;
-        }
-
-        if(django.jQuery("#id_slug") && django.jQuery("#id_title")[0]._changed){
-            changed = true;
-        }
-
-        if(django.jQuery("#id_slug") && django.jQuery('iframe').length){
+        
+        if(django.jQuery("iframe").length){
             changed = true;
         }
 
