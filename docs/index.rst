@@ -30,10 +30,7 @@ There are four steps for using simple-translation:
                 language = models.CharField(max_length=2, choices=settings.LANGUAGES)
                 title = models.CharField(max_length=255)
 
-    2. simple-translation has one dependency - ``django-cms``. If ``cms`` is not
-       in your `INSTALLED_APPS` list, add it.
-
-    3. For the models to be translatable, create a ``cms_translation.py`` file 
+    2. For the models to be translatable, create a ``simple_translate.py`` file 
        where you register the translated model in the translation_pool. ::
        
             from models import Entry, EntryTitle
@@ -41,7 +38,7 @@ There are four steps for using simple-translation:
             from simple_translation.translation_pool import translation_pool
             translation_pool.register(Entry, EntryTitle)
       
-    4. To be able to edit the translated models in the admin.
+    3. To be able to edit the translated models in the admin.
        Register the models using the custom ``TranslationAdmin`` ``ModelAdmin``. ::
        
             from django.contrib import admin
@@ -57,7 +54,7 @@ There are four steps for using simple-translation:
         
             Make sure ``'languages'`` is listed in ``list_display``.
     
-    5. To use the generics views middleware with namespaced urls:
+    4. To use the generics views middleware with namespaced urls:
     
         Add ``'simple_translation.middleware import MultilingualGenericsMiddleware'`` to ``settings.MIDDLEWARE_CLASSES``
         
