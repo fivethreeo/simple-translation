@@ -71,8 +71,6 @@ There are four steps for using simple-translation:
                 'slug_field': 'entrytitle__slug'
             }
             
-            entry_info_detail_dict = dict(entry_info_month_dict, slug_field='entrytitle__slug')
-            
             urlpatterns = patterns('',
                 
                 (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[-\w]+)/$', 
