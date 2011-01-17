@@ -56,7 +56,7 @@ There are four steps for using simple-translation:
     
     4. To use the generics views middleware with namespaced urls:
     
-        Add ``'simple_translation.middleware import MultilingualGenericsMiddleware'`` to ``settings.MIDDLEWARE_CLASSES``
+        Add ``'simple_translation.middleware.MultilingualGenericsMiddleware'`` to ``settings.MIDDLEWARE_CLASSES``
         
         Set up some urls using generic views: ::
         
