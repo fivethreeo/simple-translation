@@ -32,14 +32,16 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             language = getattr(request, 'LANGUAGE_CODE')
             
         if 'queryset' in view_kwargs:
-            if translation_pool.is_registered(view_kwargs['queryset'].model):
-                translation_info = translation_pool.get_info(view_kwargs['queryset'].model)
-                filter_expr = '%s__%s' % (translation_info['translation_filter'], translation_info['language_field'])
-            if translation_pool.is_registered_translation(view_kwargs['queryset'].model):
-                translation_info = translation_pool.get_info(view_kwargs['queryset'].model)
-                filter_expr = '%s' % translation_info['language_field']
+            model = view_kwargs['queryset'].model
+            if translation_pool.is_registered(model):
+                info = translation_pool.get_info(model)
+                filter_expr = '%s__%s' % (info.translation_join_filter, info.language_field)
+            if translation_pool.is_registered_translation(model):
+                info = translation_pool.get_info(model)
+                filter_expr = '%s' % info.language_field
             if filter_expr:
-                view_kwargs['queryset'] = view_kwargs['queryset'].filter(**{filter_expr: language}).distinct()
+                view_kwargs['queryset'] = view_kwargs['queryset'].filter( \
+                    **{filter_expr: language}).distinct()
                     
     def process_response(self, request, response):
         if not 'django.middleware.locale.LocaleMiddleware' in settings.MIDDLEWARE_CLASSES:

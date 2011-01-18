@@ -30,10 +30,10 @@ def make_translation_admin(admin):
         
         def __init__(self, *args, **kwargs):
             super(RealTranslationAdmin, self).__init__(*args, **kwargs)
-            translation_info = translation_pool.get_info(self.model)
-            self.translation_model = translation_info['model']
-            self.translation_model_fk = translation_info['translation_model_fk']
-            self.translation_model_language = translation_info['language_field']
+            info = translation_pool.get_info(self.model)
+            self.translated_model = info.translated_model
+            self.translation_of_field = info.translation_of_field
+            self.language_field = info.language_field
     
         def description(self, obj):
             return getattr(translation_pool.annotate_with_translations(obj), 'translations', []) \
@@ -42,7 +42,7 @@ def make_translation_admin(admin):
         def languages(self, obj):
                 lnk = '<a href="%s/?language=%s">%s</a>'
                 trans_list = [ (obj.pk, \
-                	getattr(t, self.translation_model_language), getattr(t, self.translation_model_language).upper())
+                	getattr(t, self.language_field), getattr(t, self.language_field).upper())
                     	for t in getattr(translation_pool.annotate_with_translations(obj), 'translations') or []]
                 return ' '.join([lnk % t for t in trans_list])
         languages.short_description = 'Languages'
@@ -55,16 +55,16 @@ def make_translation_admin(admin):
             if obj:
                 
                 get_kwargs = {
-                    self.translation_model_fk: obj,
-                    self.translation_model_language: language
+                    self.translation_of_field: obj,
+                    self.language_field: language
                 }
     
                 try:
-                    return self.translation_model.objects.get(**get_kwargs)
+                    return self.translated_model.objects.get(**get_kwargs)
                 except:
-                    return self.translation_model(**get_kwargs)
+                    return self.translated_model(**get_kwargs)
     
-            return self.translation_model(**{self.translation_model_language: language})
+            return self.translated_model(**{self.language_field: language})
                 
         def get_form(self, request, obj=None, **kwargs):
             """
@@ -103,7 +103,7 @@ def make_translation_admin(admin):
             return form.child_form.save(commit=False)            
 
         def save_translated_model(self, request, obj, translation_obj, form, change):
-            setattr(translation_obj, self.translation_model_fk, obj) 
+            setattr(translation_obj, self.translation_of_field, obj) 
             translation_obj.save()
             
         def save_model(self, request, obj, form, change):
@@ -137,7 +137,7 @@ def make_translation_admin(admin):
             language = get_language_from_request(request)
  
             opts = self.model._meta
-            translationopts = self.translation_model._meta
+            translationopts = self.translated_model._meta
             app_label = translationopts.app_label
     
             try:
@@ -157,7 +157,7 @@ def make_translation_admin(admin):
             if not len(translation_pool.annotate_with_translations(obj).translations) > 1:
                 raise Http404(_('There only exists one translation for this page'))
     
-            translationobj = get_object_or_404(self.translation_model, **{self.translation_model_fk + '__id': object_id, 'language': language})
+            translationobj = get_object_or_404(self.translated_model, **{self.translation_of_field + '__id': object_id, 'language': language})
             using = router.db_for_write(self.model)
             deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, request.user, self.admin_site, using)        
     

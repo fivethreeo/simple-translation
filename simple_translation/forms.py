@@ -23,9 +23,9 @@ class TranslationModelFormMetaclass(ModelFormMetaclass):
         if opts.model:
             if translation_pool.is_registered(opts.model):
                 info = translation_pool.get_info(opts.model)
-                translation_model = info['model']
-                new_class.child_form_class = modelform_factory(translation_model,
-                    exclude=[info['translation_model_fk']], formfield_callback=formfield_callback)
+                translated_model = info.translated_model
+                new_class.child_form_class = modelform_factory(translated_model,
+                    exclude=[info.translation_of_field], formfield_callback=formfield_callback)
                 new_class.declared_fields.update(new_class.child_form_class.declared_fields)
                 new_class.base_fields.update(new_class.child_form_class.base_fields)
         return new_class
@@ -39,18 +39,18 @@ class TranslationModelForm(ModelForm):
         
         model = self._meta.model
         child_model = self.child_form_class._meta.model
-        translation_info = translation_pool.get_info(model)
-        current_language = self.base_fields['language'].initial
+        info = translation_pool.get_info(model)
+        current_language = self.base_fields[info.language_field].initial
         if instance and instance.pk:
             try:
                 child_instance = child_model.objects.get(**{
-                    translation_info['translation_model_fk']: instance.pk,
-                    translation_info['language_field']: current_language})
+                    info.translation_of_field: instance.pk,
+                    info.language_field: current_language})
             except child_model.DoesNotExist:
                 child_instance = child_model(**{
-                    translation_info['language_field']: current_language})
+                    info.language_field: current_language})
         else:
-            child_instance = child_model(**{translation_info['language_field']: current_language})
+            child_instance = child_model(**{info.language_field: current_language})
             
         initial.update(model_to_dict(child_instance))
         self.child_form = self.child_form_class(data=data, files=files, auto_id=auto_id, prefix=prefix,
@@ -74,9 +74,9 @@ def translation_modelform_factory(model, form=TranslationModelForm, fields=None,
     # Create the inner Meta class. FIXME: ideally, we should be able to
     # construct a ModelForm without creating and passing in a temporary
     # inner class.
-    translation_info = translation_pool.get_info(model)
-    translation_model = translation_info['model']
-    translation_fields = [f[0].name for f in translation_model._meta.get_fields_with_model()]
+    info = translation_pool.get_info(model)
+    translated_model = info.translated_model
+    translation_fields = [f[0].name for f in translated_model._meta.get_fields_with_model()]
     # Build up a list of attributes that the Meta object will have.
     attrs = {'model': model}
     if fields is not None:
