@@ -61,7 +61,6 @@ class TranslationModelForm(ModelForm):
         super(TranslationModelForm, self).__init__(data=data, files=files, auto_id=auto_id, prefix=prefix,
             initial=initial, error_class=error_class, label_suffix=label_suffix,
             empty_permitted=empty_permitted, instance=instance)
-    __init__.testvar = True
 
     def full_clean(self):
         super(TranslationModelForm, self).full_clean()
