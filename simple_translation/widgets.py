@@ -10,7 +10,8 @@ from simple_translation.translation_pool import translation_pool
 class LanguageWidget(forms.HiddenInput):
     
     def __init__(self, *args, **kwargs):
-        self.translation = kwargs.pop('translation')
+        self.translation_of_obj = kwargs.pop('translation_of_obj')
+        self.translation_obj = kwargs.pop('translation_obj')
         super(LanguageWidget, self).__init__(*args, **kwargs)
             
     is_hidden = False
@@ -54,18 +55,38 @@ class LanguageWidget(forms.HiddenInput):
         hidden_input = super(LanguageWidget, self).render(name, value, attrs=attrs)
         lang_dict = dict(settings.LANGUAGES)
         
+        current_languages = []
+        translation_of_obj = self.translation_of_obj
+        if translation_of_obj and translation_of_obj.pk:
+            info = translation_pool.get_info(translation_of_obj.__class__)
+            translation_of_obj = translation_pool.annotate_with_translations(translation_of_obj)
+            for translation in translation_of_obj.translations:
+                current_languages.append(getattr(translation, info.translation_of_field))
+        
         buttons = []
         for lang in settings.LANGUAGES:
             current_lang = lang[0] == value
-            button_classes = u'class="button%s"' % current_lang and '' or ''
-            buttons.append(u''' <input onclick="trigger_lang_button(this,'./?language=%s');" %s id="debutton" name="%s" value="%s" type="button" %s>''' % (
-                lang[0], button_classes, lang[0], lang[1], current_lang and 'disabled' or ''))
-                
-        lang_descr = _('Delete: &quot;%s&quot; translation.') % force_unicode(lang_dict[str(value)]) 
-        if self.translation.pk and len(translation_pool.annotate_with_translations(self.translation).translations) > 1:
-            buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"%s id="debutton" name="%s" value="%s" type="button" class="button default">''' % (
-                    value, u'', 'dellang', lang_descr ))    
-                
+            language_exists = lang[0] in current_languages
+            button_classes = u'class="button%s%s"' % (
+                current_lang and ' current' or '',
+                language_exists and ' exists' or ''
+            )
+            disabled = current_lang and 'disabled' or ''
+            buttons.append(u''' <input onclick="trigger_lang_button(this,'./?language=%s');"
+                %s id="debutton" name="%s" value="%s" type="button" %s>''' % (
+                    lang[0], button_classes, lang[0], lang[1], disabled
+                )
+            )
+                     
+        if self.translation_obj.pk and len(current_languages) > 1:
+            lang_descr = _('Delete: &quot;%s&quot; translation.') % force_unicode(lang_dict[str(value)])
+            buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"
+            %s id="debutton" name="%s" value="%s" type="button" class="button default">''' % (
+                value, u'', 'dellang', lang_descr
+                )
+            )    
+                    
         tabs = u"""%s%s<div id="page_form_lang_tabs">%s</div>""" % (self.button_js, hidden_input, u''.join(buttons))
 
         return mark_safe(tabs)

@@ -94,8 +94,11 @@ def make_translation_admin(admin):
             new_form = translation_modelform_factory(self.model, **defaults)
             current_language = get_language_from_request(request)
             translation_obj = self.get_translation(request, obj)
-            new_form.base_fields['language'].widget = LanguageWidget(translation=translation_obj)
-            new_form.base_fields['language'].initial = current_language
+            new_form.base_fields[self.language_field].widget = LanguageWidget(
+            	translation_of_obj=obj,
+            	translation_obj=translation_obj
+            )
+            new_form.base_fields[self.language_field].initial = current_language
 
             return new_form
             
@@ -132,7 +135,6 @@ def make_translation_admin(admin):
             return response
             
         def delete_translation(self, request, object_id, extra_context=None):
-            from simple_translation.translation_pool import translation_pool
     
             language = get_language_from_request(request)
  
