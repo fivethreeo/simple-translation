@@ -1,5 +1,5 @@
 from django.forms.models import model_to_dict, fields_for_model
-from django.forms.models import ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
+from django.forms.models import BaseModelForm, ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
 from django.forms.util import ErrorList
 
 from simple_translation.translation_pool import translation_pool
@@ -13,8 +13,9 @@ class TranslationModelFormMetaclass(ModelFormMetaclass):
         except NameError:
             # We are defining TranslationModelForm itself.
             parents = None
+            
         new_class = super(TranslationModelFormMetaclass, cls).__new__(cls, name, bases,
-            attrs)
+                attrs)
         if not parents:
             return new_class
             
@@ -30,7 +31,6 @@ class TranslationModelFormMetaclass(ModelFormMetaclass):
         return new_class
         
 class TranslationModelForm(ModelForm):
-    
     __metaclass__ = TranslationModelFormMetaclass
     
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
@@ -61,7 +61,7 @@ class TranslationModelForm(ModelForm):
         super(TranslationModelForm, self).__init__(data=data, files=files, auto_id=auto_id, prefix=prefix,
             initial=initial, error_class=error_class, label_suffix=label_suffix,
             empty_permitted=empty_permitted, instance=instance)
-            
+    __init__.testvar = True
 
     def full_clean(self):
         super(TranslationModelForm, self).full_clean()
@@ -69,9 +69,9 @@ class TranslationModelForm(ModelForm):
         if self.child_form._errors:
             self._update_errors(self.child_form._errors)
             del self.cleaned_data
-            
+    
 def translation_modelform_factory(model, form=TranslationModelForm, fields=None, exclude=None,
-                       formfield_callback=None):
+    formfield_callback=None):
     # Create the inner Meta class. FIXME: ideally, we should be able to
     # construct a ModelForm without creating and passing in a temporary
     # inner class.
