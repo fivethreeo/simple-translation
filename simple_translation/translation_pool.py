@@ -88,13 +88,12 @@ class TranslationPool(object):
             
             info = self.get_info(model)
             
-            translation_model_fk = info.translation_of_field
                
             id_list = [r.pk for r in result_list]
             pk_index_map = dict([(pk, index) for index, pk in enumerate(id_list)])
             
-            translations = translated_model.objects.filter(**{
-                translation_model_fk + '__in': id_list
+            translations = info.translated_model.objects.filter(**{
+                info.translation_of_field + '__in': id_list
             })
             
             for obj in translations:
