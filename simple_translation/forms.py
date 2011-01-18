@@ -1,5 +1,5 @@
 from django.forms.models import model_to_dict, fields_for_model
-from django.forms.models import BaseModelForm, ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
+from django.forms.models import  ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
 from django.forms.util import ErrorList
 
 from simple_translation.translation_pool import translation_pool
