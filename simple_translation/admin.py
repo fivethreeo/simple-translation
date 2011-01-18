@@ -16,13 +16,15 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 
 from simple_translation.widgets import LanguageWidget
-from simple_translation.forms import translation_modelform_factory
+from simple_translation.forms import TranslationModelForm, translation_modelform_factory
 from simple_translation.utils import get_language_from_request
 from simple_translation.translation_pool import translation_pool
 
 def make_translation_admin(admin):
     
     class RealTranslationAdmin(admin):
+        
+        form = TranslationModelForm
         
         list_display = ('description', 'languages')
         
