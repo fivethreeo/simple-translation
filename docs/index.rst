@@ -58,6 +58,8 @@ There are six steps for using simple-translation:
             
             from simple_translation.translation_pool import translation_pool
             translation_pool.register_translation(Entry, EntryTitle)
+            # or if with a language field other than 'language'
+            translation_pool.register_translation(Entry, EntryTitle, language_field='lang')
       
     4. To be able to edit the translated models in the admin.
        Register the models using the custom ``TranslationAdmin`` ``ModelAdmin``. ::
