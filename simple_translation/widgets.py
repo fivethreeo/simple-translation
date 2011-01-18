@@ -61,8 +61,8 @@ class LanguageWidget(forms.HiddenInput):
             info = translation_pool.get_info(translation_of_obj.__class__)
             translation_of_obj = translation_pool.annotate_with_translations(translation_of_obj)
             for translation in translation_of_obj.translations:
-                current_languages.append(getattr(translation, info.translation_of_field))
-        
+                current_languages.append(getattr(translation, info.language_field))
+                
         buttons = []
         for lang in settings.LANGUAGES:
             current_lang = lang[0] == value
