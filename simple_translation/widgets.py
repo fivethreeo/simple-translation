@@ -8,7 +8,14 @@ from django import forms
 from simple_translation.translation_pool import translation_pool
 
 class LanguageWidget(forms.HiddenInput):
-    
+	
+    class Media:
+    	# use getattr until django-cms reccomends django 1.3
+    	css = {
+    		'all': ['%ssimple_translation/widget.css' % getattr(settings, 'STATIC_URL', '')]
+    	}
+    	js = ['%ssimple_translation/widget.js' % getattr(settings, 'STATIC_URL', '')]
+    	
     def __init__(self, *args, **kwargs):
         self.translation_of_obj = kwargs.pop('translation_of_obj')
         self.translation_obj = kwargs.pop('translation_obj')
@@ -67,13 +74,12 @@ class LanguageWidget(forms.HiddenInput):
         for lang in settings.LANGUAGES:
             current_lang = lang[0] == value
             language_exists = lang[0] in current_languages
-            button_classes = u'class="button%s%s"' % (
-                current_lang and ' current' or '',
-                language_exists and ' exists' or ''
+            button_classes = u'class="%s"' % (
+                current_lang and 'simple-translation-current' or language_exists and 'simple-translation-exists' or '',
             )
             disabled = current_lang and 'disabled' or ''
             buttons.append(u''' <input onclick="trigger_lang_button(this,'./?language=%s');"
-                %s id="debutton" name="%s" value="%s" type="button" %s>''' % (
+                %s name="%s" value="%s" type="button" %s>''' % (
                     lang[0], button_classes, lang[0], lang[1], disabled
                 )
             )
@@ -82,11 +88,11 @@ class LanguageWidget(forms.HiddenInput):
             lang_descr = _('Delete: &quot;%s&quot; translation.') % force_unicode(lang_dict[str(value)])
             buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"
-            %s id="debutton" name="%s" value="%s" type="button" class="button default">''' % (
-                value, u'', 'dellang', lang_descr
+            %s name="%s" value="%s" type="button">''' % (
+                value, u'class="simple-translation-delete"', 'language_delete', lang_descr
                 )
             )    
                     
-        tabs = u"""%s%s<div id="page_form_lang_tabs">%s</div>""" % (self.button_js, hidden_input, u''.join(buttons))
+        tabs = u"""%s%s%s""" % (self.button_js, hidden_input, u''.join(buttons))
 
         return mark_safe(tabs)
