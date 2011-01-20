@@ -1,7 +1,7 @@
 from django.forms.models import model_to_dict, fields_for_model
 from django.forms.models import  ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
-from django.forms.util import ErrorList
-
+from django.forms.util import ErrorList, ErrorDict
+from django.core.exceptions import NON_FIELD_ERRORS
 from simple_translation.translation_pool import translation_pool
 
 class TranslationModelFormMetaclass(ModelFormMetaclass):
@@ -64,11 +64,19 @@ class TranslationModelForm(ModelForm):
 
     def full_clean(self):
         super(TranslationModelForm, self).full_clean()
+        if self._errors:
+            self.cleaned_data = {}
         self.child_form.full_clean()
         if self.child_form._errors:
-            self._update_errors(self.child_form._errors)
+            if not self._errors:
+                self._errors = ErrorDict()
+            for name, errors in self.child_form._errors.items():
+                # might not show model validation properly for fields with unique
+                # before submitting again / eitherr this or duplicate erreos
+                if not name in self._errors and name != NON_FIELD_ERRORS:
+                    self._update_errors({name: errors})
             del self.cleaned_data
-    
+
 def translation_modelform_factory(model, form=TranslationModelForm, fields=None, exclude=None,
     formfield_callback=None):
     # Create the inner Meta class. FIXME: ideally, we should be able to
