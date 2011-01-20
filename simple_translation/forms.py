@@ -70,11 +70,11 @@ class TranslationModelForm(ModelForm):
         if self.child_form._errors:
             if not self._errors:
                 self._errors = ErrorDict()
-            for name, errors in self.child_form._errors.items():
-                # might not show model validation properly for fields with unique
-                # before submitting again / eitherr this or duplicate erreos
-                if not name in self._errors and name != NON_FIELD_ERRORS:
-                    self._update_errors({name: errors})
+            for k, v in self.child_form._errors.items():
+                if k in self._errors and k != NON_FIELD_ERRORS:
+                    # remove existing errors so there are no duplicates
+                    del self._errors[k]
+            self._update_errors(self.child_form._errors)
             del self.cleaned_data
 
 def translation_modelform_factory(model, form=TranslationModelForm, fields=None, exclude=None,
