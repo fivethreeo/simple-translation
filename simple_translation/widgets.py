@@ -19,6 +19,8 @@ class LanguageWidget(forms.HiddenInput):
     def __init__(self, *args, **kwargs):
         self.translation_of_obj = kwargs.pop('translation_of_obj')
         self.translation_obj = kwargs.pop('translation_obj')
+        self.static = 'django.contrib.staticfiles' in settings.INSTALLED_APPS
+        
         super(LanguageWidget, self).__init__(*args, **kwargs)
             
     is_hidden = False
@@ -75,7 +77,7 @@ class LanguageWidget(forms.HiddenInput):
             current_lang = lang[0] == value
             language_exists = lang[0] in current_languages
             button_classes = u'class="%s"' % (
-                current_lang and 'simple-translation-current' or language_exists and 'simple-translation-exists' or '',
+                (not self.static and 'button') or current_lang and 'simple-translation-current' or language_exists and 'simple-translation-exists' or '',
             )
             disabled = current_lang and 'disabled' or ''
             buttons.append(u''' <input onclick="trigger_lang_button(this,'./?language=%s');"
@@ -89,7 +91,7 @@ class LanguageWidget(forms.HiddenInput):
             buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"
             %s name="%s" value="%s" type="button">''' % (
-                value, u'class="simple-translation-delete"', 'language_delete', lang_descr
+                value, u'class="%s"' % (not self.static and 'button default' or 'simple-translation-delete'), 'language_delete', lang_descr
                 )
             )    
                     
