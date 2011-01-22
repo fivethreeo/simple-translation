@@ -38,6 +38,7 @@ def run_tests():
             'django.contrib.sessions',
             'django.contrib.admin',
             'django.contrib.sites',
+            'django.contrib.staticfiles',
             'simple_translation',
             'simple_translation.test.testapp'
         ),

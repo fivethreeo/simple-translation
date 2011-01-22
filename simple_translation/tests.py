@@ -151,12 +151,12 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         # edit english
         response = self.client.get(edit_url, {'language': 'en'})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'language_button selected" id="debutton" name="en"' )
+        self.assertContains(response, 'class="simple-translation-current" name="en"' )
         
         # edit german
         response = self.client.get(edit_url, {'language': 'de'})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'language_button selected" id="debutton" name="de"' )
+        self.assertContains(response, 'class="simple-translation-current" name="en"' )
         
         
     def test_07_test_changelist_description(self):
