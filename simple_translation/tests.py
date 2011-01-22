@@ -148,6 +148,11 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         
         edit_url = reverse('admin:testapp_entry_change', args=(str(entry.pk)))
         
+        # edit english(default)
+        response = self.client.get(edit_url)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'class="simple-translation-current" name="en"' )
+        
         # edit english
         response = self.client.get(edit_url, {'language': 'en'})
         self.assertEquals(response.status_code, 200)
@@ -156,7 +161,7 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         # edit german
         response = self.client.get(edit_url, {'language': 'de'})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'class="simple-translation-current" name="en"' )
+        self.assertContains(response, 'class="simple-translation-current" name="de"' )
         
         
     def test_07_test_changelist_description(self):
