@@ -2,11 +2,15 @@ import datetime
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
-
+from django.template import Template, Context
+from django.test.client import RequestFactory
 from simple_translation.test.testcases import SimpleTranslationBaseTestCase
 
 class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
     
+    def setUp(self):
+        self.request_factory =  RequestFactory()
+           
     def test_01_test_translated_urls(self):
         
         old_urlconf  = settings.ROOT_URLCONF
@@ -182,3 +186,29 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, '<a href="1/?language=en">EN</a>' )
         self.assertContains(response, '<a href="1/?language=de">DE</a>' )
+        
+    def test_08_test_filters(self):
+        published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
+        en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
+        
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
+        
+        request = self.request_factory.get('')
+        request.LANGUAGE_CODE = 'en'
+        
+        ctxt = Context({'entry': entry, 'request': request})
+        
+        tpl_req = Template('''{% load simple_translation_tags %}
+            {% with entry|get_preferred_translation_from_request:request as title %}
+                {{ title }}
+            {% endwith %}
+        ''')
+        
+        self.assertEquals(tpl_req.render(ctxt).strip(), 'english')
+        
+        tpl_lang = Template('''{% load simple_translation_tags %}
+            {% with entry|get_preferred_translation_from_lang:'de' as title %}
+                {{ title }}
+            {% endwith %}
+        ''')
+        self.assertEquals(tpl_lang.render(ctxt).strip(), 'german')
