@@ -8,11 +8,11 @@ class Entry(models.Model):
     is_published = models.BooleanField()
     
     class Meta:
-        verbose_name = _('Entry')
-        verbose_name_plural = _('Entries')
+        verbose_name = _('entry')
+        verbose_name_plural = _('entries')
 
 class EntryTitle(models.Model):
-    entry = models.ForeignKey(Entry, verbose_name=_('Entry'))
+    entry = models.ForeignKey(Entry, verbose_name=_('entry'))
     language = models.CharField(_('Language'), max_length=2, choices=settings.LANGUAGES)
     title = models.CharField(_('Title'), max_length=255)
     slug = models.SlugField(_('Slug'), unique=True)
@@ -32,5 +32,5 @@ class EntryTitle(models.Model):
     get_absolute_url = models.permalink(_get_absolute_url)
 
     class Meta:
-        verbose_name = _('Entry title')
-        verbose_name_plural = _('Entry titles')
+        verbose_name = _('entry title')
+        verbose_name_plural = _('entry titles')
