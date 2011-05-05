@@ -14,7 +14,6 @@ class LanguageWidget(forms.HiddenInput):
     	css = {
     		'all': ['%ssimple_translation/widget.css' % getattr(settings, 'STATIC_URL', '')]
     	}
-    	js = ['%ssimple_translation/widget.js' % getattr(settings, 'STATIC_URL', '')]
     	
     def __init__(self, *args, **kwargs):
         self.translation_of_obj = kwargs.pop('translation_of_obj')
