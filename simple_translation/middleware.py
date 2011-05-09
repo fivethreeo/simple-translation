@@ -32,6 +32,7 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             language = getattr(request, 'LANGUAGE_CODE')
             
         if 'queryset' in view_kwargs:
+            filter_expr = None    
             model = view_kwargs['queryset'].model
             if translation_pool.is_registered(model):
                 info = translation_pool.get_info(model)
