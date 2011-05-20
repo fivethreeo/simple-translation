@@ -124,8 +124,9 @@ def make_translation_admin(admin):
             
         def save_model(self, request, obj, form, change):
             super(RealTranslationAdmin, self).save_model(request, obj, form, change)
-            translation_obj = self.save_translated_form(request, obj, form, change)
-            self.save_translated_model(request, obj, translation_obj, form, change)
+            if hasattr(form, 'child_form'):
+                translation_obj = self.save_translated_form(request, obj, form, change)
+                self.save_translated_model(request, obj, translation_obj, form, change)
             
         def placeholder_plugin_filter(self, request, queryset):
             language = get_language_from_request(request)
