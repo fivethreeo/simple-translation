@@ -2,6 +2,7 @@ from django.forms.models import model_to_dict, fields_for_model
 from django.forms.models import  ModelForm, ModelFormMetaclass, modelform_factory, model_to_dict
 from django.forms.util import ErrorList, ErrorDict
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.utils.translation import get_language
 from simple_translation.translation_pool import translation_pool
 
 class TranslationModelFormMetaclass(ModelFormMetaclass):
@@ -40,7 +41,10 @@ class TranslationModelForm(ModelForm):
         model = self._meta.model
         child_model = self.child_form_class._meta.model
         info = translation_pool.get_info(model)
-        current_language = self.base_fields[info.language_field].initial
+        try:
+            current_language = self.base_fields[info.language_field].initial
+        except KeyError:
+            current_language = get_language()
         if instance and instance.pk:
             try:
                 child_instance = child_model.objects.get(**{

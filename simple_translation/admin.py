@@ -113,23 +113,8 @@ def make_translation_admin(admin):
             }
             defaults.update(kwargs)
             new_form = translation_modelform_factory(self.model, **defaults)
-            current_language = get_language_from_request(request)
-            new_form.base_fields[self.language_field] = forms.CharField(widget=forms.HiddenInput())
-            new_form.base_fields[self.language_field].initial = current_language
             return new_form
-            
-        def get_changelist_formset(self, request, **kwargs):
-            fs = super(RealTranslationAdmin, self).get_changelist_formset(request, **kwargs)
-            current_language = get_language_from_request(request)
-            language_field = self.language_field
-            
-            class TranslationFormset(fs):
-                def add_fields(self, form, index):
-                    form.fields[language_field] = forms.CharField(widget=forms.HiddenInput())
-                    form.fields[language_field].initial = current_language
-                    super(TranslationFormset, self).add_fields(form, index)
-            return TranslationFormset
-                    
+
         def save_translated_form(self, request, obj, form, change):
             return form.child_form.save(commit=False)            
 
