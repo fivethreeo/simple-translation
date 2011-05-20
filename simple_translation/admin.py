@@ -1,9 +1,10 @@
 import os
-
+from functools import partial
 from django.utils.translation import ugettext as _
 
 from django.conf import settings
 from django.db import router
+from django import forms
 from django.contrib import admin
 
 from django.contrib.admin.util import unquote, get_deleted_objects, flatten_fieldsets
@@ -95,11 +96,26 @@ def make_translation_admin(admin):
             current_language = get_language_from_request(request)
             translation_obj = self.get_translation(request, obj)
             new_form.base_fields[self.language_field].widget = LanguageWidget(
-            	translation_of_obj=obj,
-            	translation_obj=translation_obj
+                translation_of_obj=obj,
+                translation_obj=translation_obj
             )
             new_form.base_fields[self.language_field].initial = current_language
 
+            return new_form
+            
+        def get_changelist_form(self, request, **kwargs):
+            """
+            Returns a Form class for use in the Formset on the changelist page.
+            """
+
+            defaults = {
+                "formfield_callback": partial(self.formfield_for_dbfield, request=request),
+            }
+            defaults.update(kwargs)
+            new_form = translation_modelform_factory(self.model, **defaults)
+            current_language = get_language_from_request(request)
+            new_form.base_fields[self.language_field].widget = forms.HiddenInput()
+            new_form.base_fields[self.language_field].initial = current_language
             return new_form
             
         def save_translated_form(self, request, obj, form, change):
