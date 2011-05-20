@@ -40,10 +40,9 @@ class TranslationModelForm(ModelForm):
         model = self._meta.model
         child_model = self.child_form_class._meta.model
         info = translation_pool.get_info(model)
-        try:
-            current_language = self.base_fields[info.language_field].initial
-        except KeyError:
-            current_language = get_language()
+        
+        current_language = self.base_fields[info.language_field].initial
+
         if instance and instance.pk:
             try:
                 child_instance = child_model.objects.get(**{
