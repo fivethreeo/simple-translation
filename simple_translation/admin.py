@@ -114,7 +114,7 @@ def make_translation_admin(admin):
             defaults.update(kwargs)
             new_form = translation_modelform_factory(self.model, **defaults)
             current_language = get_language_from_request(request)
-            new_form.base_fields[self.language_field].widget = forms.HiddenInput()
+            new_form.base_fields[self.language_field] = forms.CharField(widget=forms.HiddenInput())
             new_form.base_fields[self.language_field].initial = current_language
             return new_form
             
