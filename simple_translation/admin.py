@@ -125,8 +125,8 @@ def make_translation_admin(admin):
             
             class TranslationFormset(fs):
                 def add_fields(self, form, index):
-                    form.fields[self.language_field] = forms.CharField(widget=forms.HiddenInput())
-                    form.fields[self.language_field].initial = current_language
+                    form.fields[language_field] = forms.CharField(widget=forms.HiddenInput())
+                    form.fields[language_field].initial = current_language
                     super(TranslationFormset, self).add_fields(form, index)
             return TranslationFormset
                     
