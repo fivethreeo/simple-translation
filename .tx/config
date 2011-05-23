@@ -1,0 +1,8 @@
+[simple-translation.djangopo]
+file_filter = simple_translation/locale/<lang>/LC_MESSAGES/django.po
+source_file = simple_translation/locale/en/LC_MESSAGES/django.po
+source_lang = en
+
+[main]
+host = http://www.transifex.net
+
