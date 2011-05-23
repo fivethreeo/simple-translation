@@ -46,7 +46,7 @@ def make_translation_admin(admin):
                 	getattr(t, self.language_field), getattr(t, self.language_field).upper())
                     	for t in getattr(translation_pool.annotate_with_translations(obj), 'translations') or []]
                 return ' '.join([lnk % t for t in trans_list])
-        languages.short_description = 'Languages'
+        languages.short_description = _('languages')
         languages.allow_tags = True
 
         def get_translation(self, request, obj):
