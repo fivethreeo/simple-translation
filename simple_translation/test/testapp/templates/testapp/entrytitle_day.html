@@ -1,6 +1,6 @@
-{% load i18n simple_translation_tags %}
+{% load simple_translation_tags %}
 
-<h1>{% trans "Entries for" %} {{ day|date:"d F Y" }}</h1>
+<h1>Entries for {{ day|date:"d F Y" }}</h1>
 
 <ul>
 	{% for object in object_list|annotate_with_translations %}
@@ -8,6 +8,6 @@
 		<li><a href="{{ title.get_absolute_url }}">{{ title }} - {{ title.get_language_display }}</a> {{ object|render_language_choices:request|safe }}</li>
 	    {% endwith %}
 	{% empty %}
-		<li>{% trans "No entries for this day" %}</li>
+		<li>No entries for this day</li>
 	{% endfor %}
 </ul>
