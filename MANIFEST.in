@@ -1,3 +1,5 @@
 recursive-include simple_translation/templates *
 recursive-include simple_translation/static *
 recursive-include simple_translation/test/testapp/templates *
+recursive-include simple_translation/locale *
+
