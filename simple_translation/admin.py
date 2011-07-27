@@ -21,6 +21,8 @@ from simple_translation.forms import TranslationModelForm, translation_modelform
 from simple_translation.utils import get_language_from_request
 from simple_translation.translation_pool import translation_pool
 
+import django
+
 def make_translation_admin(admin):
     
     class RealTranslationAdmin(admin):
@@ -162,8 +164,22 @@ def make_translation_admin(admin):
                 raise Http404(_('There only exists one translation for this page'))
     
             translationobj = get_object_or_404(self.translated_model, **{self.translation_of_field + '__id': object_id, 'language': language})
-            using = router.db_for_write(self.model)
-            deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, request.user, self.admin_site, using)        
+
+            if django.VERSION[1] > 2: # pragma: no cover
+                # WARNING: Django 1.3 is not officially supported yet!
+                using = router.db_for_read(self.model)
+                kwargs = {
+                    'admin_site': self.admin_site,
+                    'user': request.user,
+                    'using': using
+                }
+            else:
+                kwargs = {
+                    'admin_site': self.admin_site,
+                    'user': request.user,
+                }
+
+            deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, **kwargs)        
     
             if request.method == 'POST':
                 if perms_needed:
