@@ -38,6 +38,9 @@ There are six steps for using simple-translation:
         language = models.CharField(max_length=2, choices=settings.LANGUAGES)
         title = models.CharField(max_length=255)
         slug = models.SlugField()
+
+    class Meta:
+        unique_together = ('language, 'slug')
         
     def _get_absolute_url(self):
         language_namespace = \ 
@@ -49,7 +52,7 @@ There are six steps for using simple-translation:
             'day': self.entry.pub_date.strftime('%d'),
             'slug': self.slug
         })
-    get_absolute_url = models.permalink(_get_absolute_url)                
+    get_absolute_url = models.permalink(_get_absolute_url)            
 
 3. For the models to be translatable, create a ``simple_translate.py`` file 
    where you register the translated model in the translation_pool. ::
