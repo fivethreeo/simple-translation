@@ -37,6 +37,7 @@ There are six steps for using simple-translation:
         entry = models.ForeignKey(Entry)
         language = models.CharField(max_length=2, choices=settings.LANGUAGES)
         title = models.CharField(max_length=255)
+        slug = models.SlugField()
         
     def _get_absolute_url(self):
         language_namespace = \ 
