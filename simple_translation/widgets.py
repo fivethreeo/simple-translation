@@ -85,13 +85,8 @@ class LanguageWidget(forms.HiddenInput):
             )
                      
         if self.translation_obj.pk and len(current_languages) > 1:
-            lang_descr = _('Delete: &quot;%s&quot; translation') % force_unicode(lang_dict[str(value)])
-            buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"
-            %s name="%s" value="%s" type="button" />''' % (
-                    value, u'class="button default simple-translation-delete"', 'language_delete', lang_descr
-                )
-            )    
+            lang_descr = _('Delete %s translation') % force_unicode(lang_dict[str(value)])
+            buttons.append(u'''<p class="deletelink-box simple-translation-delete"><a href="delete-translation/?language=%s" class="deletelink deletetranslation">%s</a></p>''' % (value, lang_descr))
                     
         tabs = u"""%s%s%s""" % (self.button_js, hidden_input, u''.join(buttons))
 
