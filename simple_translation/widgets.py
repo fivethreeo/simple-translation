@@ -12,13 +12,12 @@ class LanguageWidget(forms.HiddenInput):
     class Media:
     	# use getattr until django-cms reccomends django 1.3
     	css = {
-    		'all': ['%ssimple_translation/widget.css' % getattr(settings, 'STATIC_URL', '')]
+    		'all': ['%ssimple_translation/widget.css' % getattr(settings, 'STATIC_URL', getattr(settings, 'MEDIA_URL', ''))]
     	}
     	
     def __init__(self, *args, **kwargs):
         self.translation_of_obj = kwargs.pop('translation_of_obj')
         self.translation_obj = kwargs.pop('translation_obj')
-        self.static = 'django.contrib.staticfiles' in settings.INSTALLED_APPS
         
         super(LanguageWidget, self).__init__(*args, **kwargs)
             
@@ -75,12 +74,12 @@ class LanguageWidget(forms.HiddenInput):
         for lang in settings.LANGUAGES:
             current_lang = lang[0] == value
             language_exists = lang[0] in current_languages
-            button_classes = u'class="%s"' % (
-                (not self.static and 'button') or current_lang and 'simple-translation-current' or language_exists and 'simple-translation-exists' or '',
+            button_classes = u'class="button%s"' % (
+                current_lang and ' simple-translation-current' or language_exists and ' simple-translation-exists' or '',
             )
-            disabled = current_lang and 'disabled' or ''
+            disabled = current_lang and ' disabled="disabled"' or ''
             buttons.append(u''' <input onclick="trigger_lang_button(this,'./?language=%s');"
-                %s name="%s" value="%s" type="button" %s>''' % (
+                %s name="%s" value="%s" type="button"%s />''' % (
                     lang[0], button_classes, lang[0], lang[1], disabled
                 )
             )
@@ -89,8 +88,8 @@ class LanguageWidget(forms.HiddenInput):
             lang_descr = _('Delete: &quot;%s&quot; translation') % force_unicode(lang_dict[str(value)])
             buttons.append(u'''&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input onclick="trigger_lang_button(this,'delete-translation/?language=%s');"
-            %s name="%s" value="%s" type="button">''' % (
-                value, u'class="%s"' % (not self.static and 'button default' or 'simple-translation-delete'), 'language_delete', lang_descr
+            %s name="%s" value="%s" type="button" />''' % (
+                    value, u'class="button default simple-translation-delete"', 'language_delete', lang_descr
                 )
             )    
                     
