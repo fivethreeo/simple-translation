@@ -18,9 +18,7 @@ def render_language_choices(obj, request):
     if not hasattr(obj, 'translations'):
         annotate_with_translations(obj)
     language = getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
-    languages = [language_code for language_code, language_name in settings.LANGUAGES]
-    translations = [translation for translation in obj.translations if translation.language in languages]
-    translations = [translation for translation in translations if translation.language != language]
+    translations = [translation for translation in obj.translations if translation.language != language]
     opts = obj.__class__._meta
     app_label = opts.app_label
     return render_to_string([

@@ -80,9 +80,9 @@ class TranslationPool(object):
             if self.is_registered_translation(model):
                 instance = getattr(list_or_instance, \
                     self.get_info(model).translation_of_field)
-                    
+            languages = [language_code for language_code, language_name in settings.LANGUAGES]
             list_or_instance.translations = list(getattr(instance, \
-            	self.get_info(model).translations_of_accessor).all())
+            	self.get_info(model).translations_of_accessor).filter(**{'%s__in' % self.language_field: languages}))
             return list_or_instance
         else:
             result_list = list_or_instance
