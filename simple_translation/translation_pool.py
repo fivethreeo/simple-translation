@@ -102,11 +102,14 @@ class TranslationPool(object):
                 info.language_field + '__in': languages,
             })
             
+            new_result_list = []
             for obj in translations:
                 index = pk_index_map[getattr(obj, info.translation_of_field + '_id')]
                 if not hasattr(result_list[index], 'translations'):
                     result_list[index].translations = []
                 result_list[index].translations.append(obj)
+                new_result_list.append(result_list[index])
+            result_list = new_result_list
         
         return result_list
     
