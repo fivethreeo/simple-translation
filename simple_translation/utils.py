@@ -39,4 +39,7 @@ def get_translation_manager(obj):
     return getattr(obj, info.translations_of_accessor)
 
 def get_translation_queryset(obj):
-    return get_translation_manager(obj).all()     
+    return get_translation_manager(obj).all()  
+
+def get_translated_model(model):
+    return info = translation_pool.get_info(model).translated_model   
