@@ -38,7 +38,7 @@ def run_tests():
             'django.contrib.sessions',
             'django.contrib.admin',
             'django.contrib.sites',
-            'django.contrib.staticfiles',
+            'staticfiles',
             'simple_translation',
             'simple_translation.test.testapp'
         ),
@@ -50,9 +50,10 @@ def run_tests():
             ("de", "German"),
         ),
         
-        SITE_ID = 1
-        
-
+        SITE_ID = 1,
+        STATIC_URL='/some/url/',
+        TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner',
+        TEST_OUTPUT_VERBOSE = True
     )
     
     from django.test.utils import get_runner

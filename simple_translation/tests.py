@@ -3,14 +3,10 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.template import Template, Context
-from django.test.client import RequestFactory
 from simple_translation.test.testcases import SimpleTranslationBaseTestCase
 
 class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
-    
-    def setUp(self):
-        self.request_factory =  RequestFactory()
-           
+
     def test_01_test_translated_urls(self):
         
         old_urlconf  = settings.ROOT_URLCONF
@@ -154,18 +150,19 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         
         # edit english(default)
         response = self.client.get(edit_url)
+
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'class="simple-translation-current" name="en"' )
+        self.assertContains(response, 'simple-translation-current" name="en"' )
         
         # edit english
         response = self.client.get(edit_url, {'language': 'en'})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'class="simple-translation-current" name="en"' )
+        self.assertContains(response, 'simple-translation-current" name="en"' )
         
         # edit german
         response = self.client.get(edit_url, {'language': 'de'})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'class="simple-translation-current" name="de"' )
+        self.assertContains(response, 'simple-translation-current" name="de"' )
         
         
     def test_07_test_changelist_description(self):
@@ -193,8 +190,11 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
         
         de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
         
-        request = self.request_factory.get('')
-        request.LANGUAGE_CODE = 'en'
+        class MockRequest(object):
+            LANGUAGE_CODE  = 'en'
+            REQUEST = {}
+            
+        request = MockRequest()
         
         ctxt = Context({'entry': entry, 'request': request})
         
