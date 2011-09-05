@@ -26,7 +26,7 @@ def get_translation_filter(model, **kwargs):
     join_filter = info.translation_join_filter
     filter_dict = {}
     for key, value in kwargs.items():
-        filter_dict['%s__%s': (join_filter, key)] = value
+        filter_dict['%s__%s' % (join_filter, key)] = value
     return filter_dict
     
 def get_translation_filter_language(model, language, **kwargs):
