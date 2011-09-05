@@ -3,7 +3,7 @@ import os
 
 setup(
     name='simple-translation',
-    version='0.7.5',
+    version='0.7.7',
     description='This is a translation app/plugin with support for django-cms 2.1 plugins in the admin',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README')).read(),
     author='Oyvind Saltvik',

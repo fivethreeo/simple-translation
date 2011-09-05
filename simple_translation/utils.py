@@ -34,6 +34,9 @@ def get_translation_filter_language(model, language, **kwargs):
     kwargs[info.language_field] = language
     return get_translation_filter(model, **kwargs)        
 
-def get_translation_queryset(obj):
+def get_translation_manager(obj):
     info = translation_pool.get_info(obj.__class__)
-    return getattr(obj, info.translations_of_accessor).all()     
+    return getattr(obj, info.translations_of_accessor)
+
+def get_translation_queryset(obj):
+    return get_translation_manager(obj).all()     
