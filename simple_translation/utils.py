@@ -20,3 +20,20 @@ def get_preferred_translation_from_lang(obj, language):
         if translation.language == language:
             return translation
     return obj.translations[0]
+    
+def get_translation_filter(model, **kwargs):
+    info = translation_pool.get_info(model)
+    join_filter = info.translation_join_filter
+    filter_dict = {}
+    for key, value in kw.items():
+        filter_dict['%s__%s': (join_filter, key)] = value
+    return filter_dict
+    
+def get_translation_filter_language(model, language, **kwargs):
+    info = translation_pool.get_info(model)
+    kwargs[info.language_field] = language
+    return get_translation_filter(model, **kwargs)        
+
+def get_translation_queryset(obj):
+    info = translation_pool.get_info(model)
+    return getattr(obj, info.translations_of_accessor).all()     
