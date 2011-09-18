@@ -65,7 +65,7 @@ class TranslationPool(object):
 
     def unregister_translation(self, translation_of_model):
         info = self.get_info(translation_of_model)
-        del self.translation_models_dict[info['translated_model']]
+        del self.translation_models_dict[info.translated_model]
         del self.translated_models_dict[translation_of_model]
     
     def annotate_with_translations(self, list_or_instance):

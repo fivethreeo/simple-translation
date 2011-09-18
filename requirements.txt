@@ -1,0 +1,3 @@
+django-staticfiles
+coverage
+unittest-xml-reporting==1.2

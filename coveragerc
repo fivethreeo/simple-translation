@@ -1,0 +1,11 @@
+[run]
+branch = True
+source =
+    simple_translation
+omit =
+    simple_translation/migrations/*
+    simple_translation/tests/*
+    simple_translation/test/*
+    simple_translation/test/testapp/*
+[report]
+precision = 2
