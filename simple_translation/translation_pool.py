@@ -86,6 +86,7 @@ class TranslationPool(object):
             translations = list(getattr(instance, \
             	info.translations_of_accessor).filter(**{'%s__in' % info.language_field: languages}))
 
+            # Helper function that sorts translations according to settings.LANGUAGES
             def language_key(translation):
                 l = getattr(translation, info.language_field)
                 try:
@@ -123,6 +124,7 @@ class TranslationPool(object):
                 new_result_list.append(result_list[index])
             result_list = new_result_list
 
+            # Helper function that sorts translations according to settings.LANGUAGES
             def language_key(translation):
                 l = getattr(translation, info.language_field)
                 try:
@@ -132,8 +134,7 @@ class TranslationPool(object):
             
             for result in result_list:
                 result.translations = sorted(result.translations, key=language_key)
-            
-        
+               
         return result_list
     
     def is_registered_translation(self, model):
