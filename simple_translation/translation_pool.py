@@ -74,6 +74,7 @@ class TranslationPool(object):
         if not list_or_instance:
             return list_or_instance
         languages = [language_code for language_code, language_name in settings.LANGUAGES]
+                
         if isinstance(list_or_instance, models.Model):
             model = list_or_instance.__class__
             instance = list_or_instance
@@ -81,8 +82,19 @@ class TranslationPool(object):
             if self.is_registered_translation(model):
                 instance = getattr(list_or_instance, \
                     info.translation_of_field)
-            list_or_instance.translations = list(getattr(instance, \
+            
+            translations = list(getattr(instance, \
             	info.translations_of_accessor).filter(**{'%s__in' % info.language_field: languages}))
+
+            def language_key(translation):
+                l = getattr(translation, info.language_field)
+                try:
+                    return languages.index(l)
+                except ValueError:
+                    len(l)
+
+            list_or_instance.translations = sorted(translations, key=language_key)
+            
             return list_or_instance
         else:
             result_list = list_or_instance
@@ -110,6 +122,17 @@ class TranslationPool(object):
                 result_list[index].translations.append(obj)
                 new_result_list.append(result_list[index])
             result_list = new_result_list
+
+            def language_key(translation):
+                l = getattr(translation, info.language_field)
+                try:
+                    return languages.index(l)
+                except ValueError:
+                    len(l)
+            
+            for result in result_list:
+                result.translations = sorted(result.translations, key=language_key)
+            
         
         return result_list
     
