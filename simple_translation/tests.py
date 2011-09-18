@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.template import Template, Context
 from simple_translation.test.testcases import SimpleTranslationBaseTestCase
+from simple_translation.translation_pool import TranslationPool
 
 class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
 
@@ -212,3 +213,84 @@ class SimpleTranslationTestCase(SimpleTranslationBaseTestCase):
             {% endwith %}
         ''')
         self.assertEquals(tpl_lang.render(ctxt).strip(), 'german')
+        
+    def test_09_test_respect_settings_languages(self):
+        settings.LANGUAGES = (
+            ('en', 'English'),
+            ('pl', 'Polish'),
+        )
+        published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
+        en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
+        pl_title = self.create_entry_title(entry, title='polish', language='pl', published_at=published_at)
+
+        pool = TranslationPool()
+        
+        pool.annotate_with_translations(entry)
+        translated_languages = [t.language for t in entry.translations]
+        self.assertIn('pl', translated_languages)
+        self.assertIn('en', translated_languages)
+        self.assertNotIn('de', translated_languages)
+
+    def test_10_test_respect_settings_languages_order(self):
+        settings.LANGUAGES = (
+            ('pl', 'Polish'),
+            ('en', 'English'),
+            ('de', 'German')
+        )
+        published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
+        en_title, entry = self.create_entry_with_title(title='english', published_at=published_at)
+        de_title = self.create_entry_title(entry, title='german', language='de', published_at=published_at)
+        pl_title = self.create_entry_title(entry, title='polish', language='pl', published_at=published_at)
+
+        pool = TranslationPool()
+        
+        pool.annotate_with_translations(entry)
+        translated_languages = [t.language for t in entry.translations]
+        settings_languages = [lang_code for lang_code, language in settings.LANGUAGES]
+        self.assertSequenceEqual(translated_languages, settings_languages)
+
+    def test_11_test_respect_settings_languages_list(self):
+        settings.LANGUAGES = (
+            ('en', 'English'),
+            ('pl', 'Polish'),
+        )
+        entries = []
+        for title in ('title1', 'title2'):
+            published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
+            en_title, entry = self.create_entry_with_title(title='english' + title, published_at=published_at)
+            de_title = self.create_entry_title(entry, title='german' + title, language='de', published_at=published_at)
+            pl_title = self.create_entry_title(entry, title='polish' + title, language='pl', published_at=published_at)
+            entries.append(entry)
+
+        pool = TranslationPool()
+        
+        pool.annotate_with_translations(entries)
+        for entry in entries:
+            translated_languages = [t.language for t in entry.translations]
+            self.assertIn('pl', translated_languages)
+            self.assertIn('en', translated_languages)
+            self.assertNotIn('de', translated_languages)
+
+    def test_12_test_respect_settings_languages_order_list(self):
+        settings.LANGUAGES = (
+            ('pl', 'Polish'),
+            ('en', 'English'),
+            ('de', 'German')
+        )
+        entries = []
+        for title in ('title1', 'title2'):
+            published_at = datetime.datetime.now() - datetime.timedelta(hours=-1)
+            en_title, entry = self.create_entry_with_title(title='english'+title, published_at=published_at)
+            de_title = self.create_entry_title(entry, title='german'+title, language='de', published_at=published_at)
+            pl_title = self.create_entry_title(entry, title='polish'+title, language='pl', published_at=published_at)
+            entries.append(entry)
+            
+        pool = TranslationPool()
+        
+        pool.annotate_with_translations(entries)
+        
+        settings_languages = [lang_code for lang_code, language in settings.LANGUAGES]
+        for entry in entries:
+            translated_languages = [t.language for t in entry.translations]
+            self.assertSequenceEqual(translated_languages, settings_languages)
