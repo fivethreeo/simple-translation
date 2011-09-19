@@ -74,25 +74,29 @@ class TranslationPool(object):
         if not list_or_instance:
             return list_or_instance
         languages = [language_code for language_code, language_name in settings.LANGUAGES]
-                
+        language_count = len(languages)
+        
+        model = list_or_instance.__class__ if isinstance(
+            list_or_instance, models.Model
+        ) else list_or_instance[0].__class__
+        info = self.get_info(model)
+
+        # Helper function that sorts translations according to settings.LANGUAGES
+        def language_key(translation):
+            l = getattr(translation, info.language_field)
+            try:
+                return languages.index(l)
+            except ValueError:
+                language_count
+
         if isinstance(list_or_instance, models.Model):
-            model = list_or_instance.__class__
             instance = list_or_instance
-            info = self.get_info(model)
             if self.is_registered_translation(model):
                 instance = getattr(list_or_instance, \
                     info.translation_of_field)
             
             translations = list(getattr(instance, \
             	info.translations_of_accessor).filter(**{'%s__in' % info.language_field: languages}))
-
-            # Helper function that sorts translations according to settings.LANGUAGES
-            def language_key(translation):
-                l = getattr(translation, info.language_field)
-                try:
-                    return languages.index(l)
-                except ValueError:
-                    len(l)
 
             list_or_instance.translations = sorted(translations, key=language_key)
             
@@ -101,12 +105,7 @@ class TranslationPool(object):
             result_list = list_or_instance
             if not len(result_list):
                 return result_list
-                
-            model = list_or_instance[0].__class__
-            
-            info = self.get_info(model)
-            
-               
+                            
             id_list = [r.pk for r in result_list]
             pk_index_map = dict([(pk, index) for index, pk in enumerate(id_list)])
             
@@ -123,14 +122,6 @@ class TranslationPool(object):
                 result_list[index].translations.append(obj)
                 new_result_list.append(result_list[index])
             result_list = new_result_list
-
-            # Helper function that sorts translations according to settings.LANGUAGES
-            def language_key(translation):
-                l = getattr(translation, info.language_field)
-                try:
-                    return languages.index(l)
-                except ValueError:
-                    len(l)
             
             for result in result_list:
                 result.translations = sorted(result.translations, key=language_key)
