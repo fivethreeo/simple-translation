@@ -74,7 +74,6 @@ class TranslationPool(object):
         if not list_or_instance:
             return list_or_instance
         languages = [language_code for language_code, language_name in settings.LANGUAGES]
-        language_count = len(languages)
         
         model = list_or_instance.__class__ if isinstance(
             list_or_instance, models.Model
@@ -87,7 +86,7 @@ class TranslationPool(object):
             try:
                 return languages.index(l)
             except ValueError:
-                language_count
+                pass
 
         if isinstance(list_or_instance, models.Model):
             instance = list_or_instance
