@@ -4,6 +4,20 @@ from django.utils import translation
 
 from simple_translation.translation_pool import translation_pool
 
+def filter_queryset_language(request, queryset):
+    language = getattr(request, 'LANGUAGE_CODE')
+    model = queryset.model
+    if translation_pool.is_registered(model):
+        info = translation_pool.get_info(model)
+        filter_expr = '%s__%s' % (info.translation_join_filter, info.language_field)
+    if translation_pool.is_registered_translation(model):
+        info = translation_pool.get_info(model)
+        filter_expr = '%s' % info.language_field
+    if filter_expr:
+        queryset = queryset.filter( \
+            **{filter_expr: language}).distinct()
+    return queryset
+    
 class MultilingualGenericsMiddleware(LocaleMiddleware):
     
     language_fallback_middlewares = ['django.middleware.locale.LocaleMiddleware']
@@ -14,9 +28,6 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             if middleware in settings.MIDDLEWARE_CLASSES:
                 has_fallback = True
         return has_fallback
-        
-    def process_request(self, request):
- 	    pass
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         language = None
@@ -28,24 +39,13 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             
         if not language:
             if not self.has_language_fallback_middlewares():
-                super(MultilingualGenericsMiddleware, self).process_request(request)
-            language = getattr(request, 'LANGUAGE_CODE')
+                super(MultilingualGenericsMiddleware, self).process_view(request)
             
-        if 'queryset' in view_kwargs or hasattr(view_func, 'queryset'):
+        if 'queryset' in view_kwargs:
             filter_expr = None
-            queryset = getattr(view_func, 'queryset', view_kwargs['queryset'])
-            model = queryset.model
-            if translation_pool.is_registered(model):
-                info = translation_pool.get_info(model)
-                filter_expr = '%s__%s' % (info.translation_join_filter, info.language_field)
-            if translation_pool.is_registered_translation(model):
-                info = translation_pool.get_info(model)
-                filter_expr = '%s' % info.language_field
-            if filter_expr:
-                view_kwargs['queryset'] = queryset.filter( \
-                    **{filter_expr: language}).distinct()
-                    
+            view_kwargs['queryset'] = filter_queryset_language(request, view_kwargs['queryset'])  
+
     def process_response(self, request, response):
-        if not 'django.middleware.locale.LocaleMiddleware' in settings.MIDDLEWARE_CLASSES:
+        if not self.has_language_fallback_middlewares():
             return super(MultilingualGenericsMiddleware, self).process_response(request, response)
         return response
