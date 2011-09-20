@@ -31,9 +31,10 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
                 super(MultilingualGenericsMiddleware, self).process_request(request)
             language = getattr(request, 'LANGUAGE_CODE')
             
-        if 'queryset' in view_kwargs:
-            filter_expr = None    
-            model = view_kwargs['queryset'].model
+        if 'queryset' in view_kwargs or hasattr(view_func, 'queryset'):
+            filter_expr = None
+            queryset = getattr(view_func, 'queryset', view_kwargs['queryset'])
+            model = queryset.model
             if translation_pool.is_registered(model):
                 info = translation_pool.get_info(model)
                 filter_expr = '%s__%s' % (info.translation_join_filter, info.language_field)
@@ -41,7 +42,7 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
                 info = translation_pool.get_info(model)
                 filter_expr = '%s' % info.language_field
             if filter_expr:
-                view_kwargs['queryset'] = view_kwargs['queryset'].filter( \
+                view_kwargs['queryset'] = queryset.filter( \
                     **{filter_expr: language}).distinct()
                     
     def process_response(self, request, response):
