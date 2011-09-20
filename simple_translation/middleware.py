@@ -36,11 +36,7 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             language = view_kwargs.pop('language_code')
             translation.activate(language)
             request.LANGUAGE_CODE = translation.get_language()
-            
-        if not language:
-            if not self.has_language_fallback_middlewares():
-                super(MultilingualGenericsMiddleware, self).process_view(request)
-            
+
         if 'queryset' in view_kwargs:
             filter_expr = None
             view_kwargs['queryset'] = filter_queryset_language(request, view_kwargs['queryset'])  
