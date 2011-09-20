@@ -7,6 +7,7 @@ from simple_translation.translation_pool import translation_pool
 def filter_queryset_language(request, queryset):
     language = getattr(request, 'LANGUAGE_CODE')
     model = queryset.model
+    filter_expr = None
     if translation_pool.is_registered(model):
         info = translation_pool.get_info(model)
         filter_expr = '%s__%s' % (info.translation_join_filter, info.language_field)
@@ -38,7 +39,6 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             request.LANGUAGE_CODE = translation.get_language()
 
         if 'queryset' in view_kwargs:
-            filter_expr = None
             view_kwargs['queryset'] = filter_queryset_language(request, view_kwargs['queryset'])  
 
     def process_response(self, request, response):
