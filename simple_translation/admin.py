@@ -179,7 +179,7 @@ def make_translation_admin(admin):
                     'user': request.user,
                 }
 
-            deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, **kwargs)        
+            deleted_objects, perms_needed = get_deleted_objects([translationobj], translationopts, **kwargs)[:2]       
     
             if request.method == 'POST':
                 if perms_needed:
