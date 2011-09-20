@@ -119,8 +119,6 @@ class TranslationPool(object):
                 if not hasattr(result_list[index], 'translations'):
                     result_list[index].translations = []
                 result_list[index].translations.append(obj)
-                new_result_list.append(result_list[index])
-            result_list = new_result_list
             
             for result in result_list:
                 result.translations = sorted(result.translations, key=language_key)
