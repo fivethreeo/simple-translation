@@ -5,7 +5,11 @@ from django.utils import translation
 from simple_translation.translation_pool import translation_pool
 
 def filter_queryset_language(request, queryset):
-    language = getattr(request, 'LANGUAGE_CODE')
+    language = getattr(request, 'LANGUAGE_CODE', None)
+
+    if not language:
+        return queryset
+
     model = queryset.model
     filter_expr = None
     if translation_pool.is_registered(model):
@@ -17,6 +21,7 @@ def filter_queryset_language(request, queryset):
     if filter_expr:
         queryset = queryset.filter( \
             **{filter_expr: language}).distinct()
+
     return queryset
     
 class MultilingualGenericsMiddleware(LocaleMiddleware):
