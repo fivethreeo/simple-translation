@@ -29,7 +29,10 @@ class MultilingualGenericsMiddleware(LocaleMiddleware):
             if middleware in settings.MIDDLEWARE_CLASSES:
                 has_fallback = True
         return has_fallback
-
+        
+    def process_request(self, request):
+        pass
+        
     def process_view(self, request, view_func, view_args, view_kwargs):
         language = None
         if 'language_code' in view_kwargs:
