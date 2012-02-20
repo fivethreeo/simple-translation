@@ -67,14 +67,14 @@ There are six steps for using simple-translation:
 
 4. To be able to edit the translated models in the admin.
    Register the models using the custom ``TranslationAdmin`` ``ModelAdmin``. ::
-
-   # appname/admin.py
-   from django.contrib import admin
-   from models import Entry
-   from simple_translation.admin import TranslationAdmin
     
-   class EntryAdmin(TranslationAdmin):
-       pass
+    # appname/admin.py
+    from django.contrib import admin
+    from models import Entry
+    from simple_translation.admin import TranslationAdmin
+    
+    class EntryAdmin(TranslationAdmin):
+        pass
     
     admin.site.register(Entry, EntryAdmin)
     
